@@ -24,11 +24,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: parsedBody.data.email },
+  const email = parsedBody.data.email.trim().toLowerCase();
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      email: {
+        equals: email,
+        mode: "insensitive",
+      },
+    },
   });
 
   if (existingUser) {
+    console.warn("[auth][register] user already exists", {
+      email: maskEmail(email),
+      userId: existingUser.id,
+    });
+
     return NextResponse.json(
       { message: "Пользователь с таким email уже существует" },
       { status: 409 },
@@ -40,7 +51,7 @@ export async function POST(request: Request) {
   const user = await prisma.user.create({
     data: {
       name: parsedBody.data.name,
-      email: parsedBody.data.email,
+      email,
       password: hashedPassword,
     },
   });
