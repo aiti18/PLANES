@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Apple, Chrome, Instagram, type LucideIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -63,7 +62,6 @@ const copy = {
 } satisfies Record<Language, Record<string, string>>;
 
 export function LoginForm() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const t = copy[language];
@@ -91,8 +89,7 @@ export function LoginForm() {
       }
 
       toast.success(t.success);
-      router.replace("/");
-      router.refresh();
+      window.location.assign("/");
     } catch {
       toast.error(t.retry);
     } finally {

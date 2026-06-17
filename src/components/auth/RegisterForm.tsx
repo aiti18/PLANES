@@ -54,8 +54,7 @@ export function RegisterForm() {
     }
 
     toast.success("Аккаунт создан");
-    router.push("/");
-    router.refresh();
+    window.location.assign("/");
   }
 
   return (
