@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Apple, Chrome, Instagram, type LucideIcon } from "lucide-react";
+import { Chrome, Instagram, Send, type LucideIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,10 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoginInput, loginSchema } from "@/lib/validators/auth";
 
-const socialActions: Array<{ label: string; Icon: LucideIcon }> = [
-  { label: "Apple", Icon: Apple },
-  { label: "Instagram", Icon: Instagram },
+const socialActions: Array<
+  { label: string; Icon: LucideIcon } | { label: string; text: string }
+> = [
   { label: "Google", Icon: Chrome },
+  { label: "Instagram", Icon: Instagram },
+  { label: "Telegram", Icon: Send },
+  { label: "VKontakte", text: "VK" },
 ];
 
 type Language = "en" | "ru";
@@ -220,17 +223,23 @@ export function LoginForm() {
               </span>
             </div>
 
-            <div className="mt-7 flex items-center justify-center gap-6">
-              {socialActions.map(({ label, Icon }) => (
+            <div className="mt-7 flex items-center justify-center gap-4">
+              {socialActions.map((action) => (
                 <button
-                  aria-label={label}
+                  aria-label={action.label}
                   className="flex h-[60px] w-[60px] items-center justify-center rounded-full border border-emerald-50/15 bg-white/[0.025] text-emerald-50/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] transition hover:border-[#63f279]/65 hover:text-[#63f279] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#63f279]/45"
-                  key={label}
-                  onClick={() => toast.info(`${label} ${t.socialToast}`)}
-                  title={label}
+                  key={action.label}
+                  onClick={() => toast.info(`${action.label} ${t.socialToast}`)}
+                  title={action.label}
                   type="button"
                 >
-                  <Icon className="h-5 w-5" />
+                  {"Icon" in action ? (
+                    <action.Icon className="h-5 w-5" />
+                  ) : (
+                    <span className="text-[13px] font-black tracking-normal">
+                      {action.text}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
