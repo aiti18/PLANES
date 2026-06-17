@@ -594,7 +594,7 @@ export default function MonthPage() {
             <section className="min-w-0 rounded-md border border-emerald-900/15 bg-white p-3 shadow-sm sm:p-4">
               <div className="mb-4 flex flex-col gap-3 border-b border-emerald-900/15 pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-[32px_170px_32px] items-center gap-2">
                     <button
                       aria-label="Предыдущий месяц"
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -605,7 +605,7 @@ export default function MonthPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <div>
+                    <div className="w-[170px]">
                       <p className="text-xs font-black uppercase text-emerald-900">
                         Трекер по дням
                       </p>

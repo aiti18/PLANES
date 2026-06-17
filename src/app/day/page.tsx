@@ -323,7 +323,7 @@ export default function DayPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[36px_160px_36px] items-center gap-2">
             <button
               aria-label="Предыдущий месяц"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -334,7 +334,7 @@ export default function DayPage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <div className="min-w-36 text-center">
+            <div className="w-40 text-center">
               <p className="text-xs font-black uppercase text-emerald-900">
                 {monthTitle}
               </p>

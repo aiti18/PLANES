@@ -175,7 +175,7 @@ function MonthSwitcher({
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="grid grid-cols-[36px_180px_36px] items-center gap-3">
       <button
         aria-label="Предыдущий месяц"
         className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-lg leading-none text-emerald-900 transition hover:bg-emerald-50"
@@ -184,7 +184,7 @@ function MonthSwitcher({
       >
         ‹
       </button>
-      <div className="min-w-[150px]">
+      <div className="w-[180px]">
         <p className="text-2xl font-black leading-none text-slate-900">
           {getDisplayMonthName(monthIndex, year)}
         </p>
