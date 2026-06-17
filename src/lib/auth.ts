@@ -4,6 +4,16 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validators/auth";
 
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+
+  if (!domain) {
+    return "invalid-email";
+  }
+
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   trustHost: true,
@@ -23,14 +33,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsedCredentials = loginSchema.safeParse(credentials);
 
         if (!parsedCredentials.success) {
+          console.warn("[auth][credentials] invalid credentials payload");
           return null;
         }
 
+        const email = parsedCredentials.data.email;
         const user = await prisma.user.findUnique({
-          where: { email: parsedCredentials.data.email },
+          where: { email },
         });
 
         if (!user) {
+          console.warn("[auth][credentials] user not found", {
+            email: maskEmail(email),
+          });
           return null;
         }
 
@@ -40,8 +55,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
 
         if (!isPasswordValid) {
+          console.warn("[auth][credentials] invalid password", {
+            email: maskEmail(email),
+            userId: user.id,
+          });
           return null;
         }
+
+        console.info("[auth][credentials] signed in", {
+          email: maskEmail(email),
+          userId: user.id,
+        });
 
         return {
           id: user.id,
