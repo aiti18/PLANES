@@ -24,7 +24,6 @@ const copy = {
   en: {
     title: "Sign in",
     signUp: "Sign up",
-    subtitle: "Fill the form to sign into account",
     email: "Email",
     emailPlaceholder: "Enter your email address",
     password: "Password",
@@ -44,7 +43,6 @@ const copy = {
   ru: {
     title: "Войти",
     signUp: "Регистрация",
-    subtitle: "Заполните форму, чтобы войти в аккаунт",
     email: "Email",
     emailPlaceholder: "Введите email",
     password: "Пароль",
@@ -127,9 +125,6 @@ export function LoginForm() {
               ))}
             </span>
           </h1>
-          <p className="mt-5 text-sm font-semibold text-emerald-50/68">
-            {t.subtitle}
-          </p>
         </div>
 
         <form
@@ -207,6 +202,16 @@ export function LoginForm() {
             {isSubmitting ? t.submitting : t.submit}
           </Button>
 
+          <div className="pt-1 text-center text-xs font-bold text-emerald-50/62">
+            <span>{t.registerHint}</span>{" "}
+            <Link
+              className="text-[#63f279] transition hover:text-[#9dffab]"
+              href="/register"
+            >
+              {t.signUp}
+            </Link>
+          </div>
+
           <div className="pt-3">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-emerald-50/13" />
@@ -229,16 +234,6 @@ export function LoginForm() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="pt-2 text-center text-xs font-bold text-emerald-50/62">
-            <span>{t.registerHint}</span>{" "}
-            <Link
-              className="text-[#63f279] transition hover:text-[#9dffab]"
-              href="/register"
-            >
-              {t.signUp}
-            </Link>
           </div>
         </form>
       </div>

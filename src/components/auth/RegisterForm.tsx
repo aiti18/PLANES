@@ -16,7 +16,6 @@ const copy = {
   en: {
     title: "Sign up",
     signIn: "Sign in",
-    subtitle: "Create an account to start planning",
     name: "Name",
     namePlaceholder: "Enter your name",
     email: "Email",
@@ -32,7 +31,6 @@ const copy = {
   ru: {
     title: "Регистрация",
     signIn: "Войти",
-    subtitle: "Создайте аккаунт, чтобы начать планирование",
     name: "Имя",
     namePlaceholder: "Введите имя",
     email: "Email",
@@ -90,8 +88,18 @@ export function RegisterForm() {
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col rounded-[30px] border-[5px] border-white/70 bg-transparent px-9 pb-7 pt-8 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:min-h-[650px]">
         <div className="relative z-10">
-          <div className="mb-8 flex justify-end">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/[0.04] p-0.5 text-[10px] font-extrabold leading-none">
+          <h1 className="flex flex-wrap items-end gap-x-3 gap-y-2 text-[34px] font-extrabold leading-none tracking-normal text-emerald-50 sm:text-[36px]">
+            <span>{t.title}</span>
+            <span className="pb-1 text-2xl font-semibold text-emerald-50/35">
+              /
+            </span>
+            <Link
+              className="pb-0.5 text-xl font-bold text-emerald-50/90 transition hover:text-[#6fff8f]"
+              href="/login"
+            >
+              {t.signIn}
+            </Link>
+            <span className="mb-0.5 ml-auto inline-flex rounded-full border border-white/20 bg-white/[0.04] p-0.5 text-[10px] font-extrabold leading-none">
               {(["ru", "en"] as const).map((item) => (
                 <button
                   aria-pressed={language === item}
@@ -108,23 +116,7 @@ export function RegisterForm() {
                 </button>
               ))}
             </span>
-          </div>
-
-          <h1 className="flex flex-wrap items-end gap-x-3 gap-y-2 text-[34px] font-extrabold leading-none tracking-normal text-emerald-50 sm:text-[36px]">
-            <span>{t.title}</span>
-            <span className="pb-1 text-2xl font-semibold text-emerald-50/35">
-              /
-            </span>
-            <Link
-              className="pb-0.5 text-xl font-bold text-emerald-50/90 transition hover:text-[#6fff8f]"
-              href="/login"
-            >
-              {t.signIn}
-            </Link>
           </h1>
-          <p className="mt-5 text-sm font-semibold text-emerald-50/68">
-            {t.subtitle}
-          </p>
         </div>
 
         <form
