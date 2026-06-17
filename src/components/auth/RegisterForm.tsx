@@ -1,18 +1,59 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegisterInput, registerSchema } from "@/lib/validators/auth";
 
+type Language = "en" | "ru";
+
+const copy = {
+  en: {
+    back: "Back",
+    title: "Sign up",
+    signIn: "Sign in",
+    subtitle: "Create an account to start planning",
+    name: "Name",
+    namePlaceholder: "Enter your name",
+    email: "Email",
+    emailPlaceholder: "Enter your email address",
+    password: "Password",
+    passwordPlaceholder: "Create your password",
+    submit: "Create account",
+    submitting: "Creating...",
+    success: "Account created. Please sign in",
+    retry: "Could not create account. Try again",
+    loginHint: "Already have an account?",
+  },
+  ru: {
+    back: "Назад",
+    title: "Регистрация",
+    signIn: "Войти",
+    subtitle: "Создайте аккаунт, чтобы начать планирование",
+    name: "Имя",
+    namePlaceholder: "Введите имя",
+    email: "Email",
+    emailPlaceholder: "Введите email",
+    password: "Пароль",
+    passwordPlaceholder: "Создайте пароль",
+    submit: "Создать аккаунт",
+    submitting: "Создаем...",
+    success: "Аккаунт создан. Войдите в систему",
+    retry: "Не удалось создать аккаунт. Попробуйте еще раз",
+    loginHint: "Уже есть аккаунт?",
+  },
+} satisfies Record<Language, Record<string, string>>;
+
 export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [language, setLanguage] = useState<Language>("en");
+  const t = copy[language];
   const {
     register,
     handleSubmit,
@@ -24,72 +65,171 @@ export function RegisterForm() {
   async function onSubmit(values: RegisterInput) {
     setIsSubmitting(true);
 
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    if (!response.ok) {
-      const data = (await response.json()) as { message?: string };
-      toast.error(data.message ?? "Не удалось создать аккаунт");
+      if (!response.ok) {
+        const data = (await response.json()) as { message?: string };
+        toast.error(data.message ?? t.retry);
+        setIsSubmitting(false);
+        return;
+      }
+
+      toast.success(t.success);
+      window.location.assign("/login");
+    } catch {
+      toast.error(t.retry);
       setIsSubmitting(false);
-      return;
     }
-
-    await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      callbackUrl: "/",
-      redirect: true,
-    });
-
-    // With redirect: true the browser leaves this page on success.
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Регистрация</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <section className="relative isolate flex min-h-dvh w-full items-center justify-center overflow-hidden bg-[#0b3425] px-0 py-0 text-white">
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(32,94,65,0.52),rgba(6,34,23,0.98)_64%,#071d14_100%)]" />
+
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col rounded-[30px] border-[5px] border-white/70 bg-transparent px-9 pb-7 pt-8 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:min-h-[650px]">
+        <div className="relative z-10">
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <Link
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-3 text-xs font-extrabold text-emerald-50/80 transition hover:border-[#63f279]/65 hover:text-[#63f279] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#63f279]/45"
+              href="/login"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t.back}
+            </Link>
+
+            <span className="inline-flex rounded-full border border-white/20 bg-white/[0.04] p-0.5 text-[10px] font-extrabold leading-none">
+              {(["ru", "en"] as const).map((item) => (
+                <button
+                  aria-pressed={language === item}
+                  className={`rounded-full px-2 py-1 transition ${
+                    language === item
+                      ? "bg-[#32e75d] text-[#07361e]"
+                      : "text-emerald-50/58 hover:text-[#7dff92]"
+                  }`}
+                  key={item}
+                  onClick={() => setLanguage(item)}
+                  type="button"
+                >
+                  {item.toUpperCase()}
+                </button>
+              ))}
+            </span>
+          </div>
+
+          <h1 className="flex flex-wrap items-end gap-x-3 gap-y-2 text-[34px] font-extrabold leading-none tracking-normal text-emerald-50 sm:text-[36px]">
+            <span>{t.title}</span>
+            <span className="pb-1 text-2xl font-semibold text-emerald-50/35">
+              /
+            </span>
+            <Link
+              className="pb-0.5 text-xl font-bold text-emerald-50/90 transition hover:text-[#6fff8f]"
+              href="/login"
+            >
+              {t.signIn}
+            </Link>
+          </h1>
+          <p className="mt-5 text-sm font-semibold text-emerald-50/68">
+            {t.subtitle}
+          </p>
+        </div>
+
+        <form
+          className="relative z-10 mt-8 space-y-5"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" type="text" {...register("name")} />
+            <div className="relative pt-3">
+              <Label
+                className="absolute left-6 top-0 z-10 bg-[#0b3425] px-2 text-xs font-extrabold text-[#63f279]"
+                htmlFor="name"
+              >
+                {t.name}
+              </Label>
+              <Input
+                className="h-16 rounded-[18px] border-2 border-emerald-100/20 bg-white/[0.03] px-5 text-[15px] font-medium text-emerald-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] placeholder:text-emerald-50/44 focus:border-[#63f279] focus:ring-[#63f279]/20"
+                id="name"
+                placeholder={t.namePlaceholder}
+                type="text"
+                {...register("name")}
+              />
+            </div>
             {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
+              <p className="pl-2 text-xs font-semibold text-red-200">
+                {errors.name.message}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              placeholder="you@example.com"
-              type="email"
-              {...register("email")}
-            />
+            <div className="relative pt-3">
+              <Label
+                className="absolute left-6 top-0 z-10 bg-[#0b3425] px-2 text-xs font-extrabold text-[#63f279]"
+                htmlFor="email"
+              >
+                {t.email}
+              </Label>
+              <Input
+                className="h-16 rounded-[18px] border-2 border-emerald-100/20 bg-white/[0.03] px-5 text-[15px] font-medium text-emerald-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] placeholder:text-emerald-50/44 focus:border-[#63f279] focus:ring-[#63f279]/20"
+                id="email"
+                placeholder={t.emailPlaceholder}
+                type="email"
+                {...register("email")}
+              />
+            </div>
             {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p className="pl-2 text-xs font-semibold text-red-200">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register("password")} />
+            <div className="relative pt-3">
+              <Label
+                className="absolute left-6 top-0 z-10 bg-[#0b3425] px-2 text-xs font-extrabold text-[#63f279]"
+                htmlFor="password"
+              >
+                {t.password}
+              </Label>
+              <Input
+                className="h-16 rounded-[18px] border-2 border-emerald-100/20 bg-white/[0.03] px-5 text-[15px] font-medium text-emerald-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] placeholder:text-emerald-50/44 focus:border-[#63f279] focus:ring-[#63f279]/20"
+                id="password"
+                placeholder={t.passwordPlaceholder}
+                type="password"
+                {...register("password")}
+              />
+            </div>
             {errors.password && (
-              <p className="text-sm text-destructive">
+              <p className="pl-2 text-xs font-semibold text-red-200">
                 {errors.password.message}
               </p>
             )}
           </div>
 
-          <Button className="w-full" disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Создаем..." : "Зарегистрироваться"}
+          <Button
+            className="h-16 w-full rounded-[18px] border-0 bg-[#32e75d] text-base font-extrabold text-[#07361e] shadow-[0_18px_34px_rgba(42,236,97,0.28)] transition hover:bg-[#43f26b] focus-visible:ring-[#63f279]/45"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            {isSubmitting ? t.submitting : t.submit}
           </Button>
+
+          <div className="pt-2 text-center text-xs font-bold text-emerald-50/62">
+            <span>{t.loginHint}</span>{" "}
+            <Link
+              className="text-[#63f279] transition hover:text-[#9dffab]"
+              href="/login"
+            >
+              {t.signIn}
+            </Link>
+          </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
