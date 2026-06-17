@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { RegisterInput, registerSchema } from "@/lib/validators/auth";
 
 export function RegisterForm() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
@@ -39,22 +37,14 @@ export function RegisterForm() {
       return;
     }
 
-    const signInResult = await signIn("credentials", {
+    await signIn("credentials", {
       email: values.email,
       password: values.password,
-      redirect: false,
+      callbackUrl: "/",
+      redirect: true,
     });
 
-    setIsSubmitting(false);
-
-    if (signInResult?.error) {
-      toast.success("Аккаунт создан. Войдите в систему");
-      router.push("/login");
-      return;
-    }
-
-    toast.success("Аккаунт создан");
-    window.location.assign("/");
+    // With redirect: true the browser leaves this page on success.
   }
 
   return (

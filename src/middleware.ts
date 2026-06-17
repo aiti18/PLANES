@@ -13,6 +13,11 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = Boolean(token);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
+  console.info("[auth][middleware]", {
+    path: nextUrl.pathname,
+    hasToken: isLoggedIn,
+  });
+
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }

@@ -77,23 +77,16 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await signIn("credentials", {
+      await signIn("credentials", {
         ...values,
-        redirect: false,
-        redirectTo: "/",
+        callbackUrl: "/",
+        redirect: true,
       });
-
-      if (result?.error) {
-        toast.error(t.error);
-        return;
-      }
-
-      toast.success(t.success);
-      window.location.assign("/");
     } catch {
       toast.error(t.retry);
-    } finally {
       setIsSubmitting(false);
+    } finally {
+      // With redirect: true the browser leaves this page on success.
     }
   }
 
