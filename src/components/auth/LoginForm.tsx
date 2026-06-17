@@ -96,7 +96,7 @@ export function LoginForm() {
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col rounded-[30px] border-[5px] border-white/70 bg-transparent px-9 pb-7 pt-8 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:min-h-[650px]">
         <div className="relative z-10">
-          <h1 className="flex flex-wrap items-end gap-x-3 gap-y-2 text-[34px] font-extrabold leading-none tracking-normal text-emerald-50 sm:text-[36px]">
+          <h1 className="mt-[10px] flex flex-wrap items-end gap-x-3 gap-y-2 text-[34px] font-extrabold leading-none tracking-normal text-emerald-50 sm:text-[36px]">
             <span>{t.title}</span>
             <span className="pb-1 text-2xl font-semibold text-emerald-50/35">
               /
