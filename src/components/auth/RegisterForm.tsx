@@ -52,7 +52,7 @@ const copy = {
 
 export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
   const {
     register,

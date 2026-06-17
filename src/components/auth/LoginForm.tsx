@@ -63,7 +63,7 @@ const copy = {
 
 export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
   const {
     register,
