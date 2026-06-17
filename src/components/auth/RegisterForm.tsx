@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,7 +14,6 @@ type Language = "en" | "ru";
 
 const copy = {
   en: {
-    back: "Back",
     title: "Sign up",
     signIn: "Sign in",
     subtitle: "Create an account to start planning",
@@ -32,7 +30,6 @@ const copy = {
     loginHint: "Already have an account?",
   },
   ru: {
-    back: "Назад",
     title: "Регистрация",
     signIn: "Войти",
     subtitle: "Создайте аккаунт, чтобы начать планирование",
@@ -93,15 +90,7 @@ export function RegisterForm() {
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col rounded-[30px] border-[5px] border-white/70 bg-transparent px-9 pb-7 pt-8 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:min-h-[650px]">
         <div className="relative z-10">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-white/18 bg-white/[0.04] px-3 text-xs font-extrabold text-emerald-50/80 transition hover:border-[#63f279]/65 hover:text-[#63f279] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#63f279]/45"
-              href="/login"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t.back}
-            </Link>
-
+          <div className="mb-8 flex justify-end">
             <span className="inline-flex rounded-full border border-white/20 bg-white/[0.04] p-0.5 text-[10px] font-extrabold leading-none">
               {(["ru", "en"] as const).map((item) => (
                 <button

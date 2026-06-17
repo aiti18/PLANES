@@ -39,6 +39,7 @@ const copy = {
     error: "Invalid email or password",
     success: "You signed in",
     retry: "Could not sign in. Try again",
+    registerHint: "No account yet?",
   },
   ru: {
     title: "Войти",
@@ -58,6 +59,7 @@ const copy = {
     error: "Неверный email или пароль",
     success: "Вы вошли в аккаунт",
     retry: "Не удалось войти. Попробуйте еще раз",
+    registerHint: "Нет аккаунта?",
   },
 } satisfies Record<Language, Record<string, string>>;
 
@@ -227,6 +229,16 @@ export function LoginForm() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="pt-2 text-center text-xs font-bold text-emerald-50/62">
+            <span>{t.registerHint}</span>{" "}
+            <Link
+              className="text-[#63f279] transition hover:text-[#9dffab]"
+              href="/register"
+            >
+              {t.signUp}
+            </Link>
           </div>
         </form>
       </div>
