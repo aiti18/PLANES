@@ -12,13 +12,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoginInput, loginSchema } from "@/lib/validators/auth";
 
-const socialActions: Array<
-  { label: string; Icon: LucideIcon } | { label: string; text: string }
-> = [
+function VkIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M12.89 17.08c-5.3 0-8.32-3.63-8.45-9.68h2.66c.09 4.43 2.04 6.31 3.58 6.7V7.4h2.5v3.82c1.52-.16 3.11-1.91 3.65-3.82h2.5c-.41 2.35-2.16 4.1-3.4 4.82 1.24.58 3.23 2.11 3.98 4.86h-2.75c-.59-1.84-2.04-3.27-3.98-3.46v3.46h-.29Z" />
+    </svg>
+  );
+}
+
+const socialActions: Array<{ label: string; Icon: LucideIcon | typeof VkIcon }> = [
   { label: "Google", Icon: Chrome },
   { label: "Instagram", Icon: Instagram },
   { label: "Telegram", Icon: Send },
-  { label: "VKontakte", text: "VK" },
+  { label: "VKontakte", Icon: VkIcon },
 ];
 
 type Language = "en" | "ru";
@@ -233,13 +244,7 @@ export function LoginForm() {
                   title={action.label}
                   type="button"
                 >
-                  {"Icon" in action ? (
-                    <action.Icon className="h-5 w-5" />
-                  ) : (
-                    <span className="text-[13px] font-black tracking-normal">
-                      {action.text}
-                    </span>
-                  )}
+                  <action.Icon className="h-5 w-5" />
                 </button>
               ))}
             </div>
