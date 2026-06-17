@@ -6,9 +6,13 @@ const publicRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
+  const isSecureRequest =
+    nextUrl.protocol === "https:" ||
+    request.headers.get("x-forwarded-proto") === "https";
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
+    secureCookie: isSecureRequest,
   });
   const isLoggedIn = Boolean(token);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
@@ -16,6 +20,7 @@ export async function middleware(request: NextRequest) {
   console.info("[auth][middleware]", {
     path: nextUrl.pathname,
     hasToken: isLoggedIn,
+    secureCookie: isSecureRequest,
   });
 
   if (!isLoggedIn && !isPublicRoute) {
