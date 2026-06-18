@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   ImagePlus,
+  LogOut,
   Settings,
   User,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -205,6 +207,7 @@ export default function SettingsPage() {
       emailNotifications: "Email notifications",
       english: "English",
       language: "Language",
+      logout: "Log out",
       name: "Name",
       notifications: "Notifications",
       openSiteSettings: "Site management",
@@ -229,6 +232,7 @@ export default function SettingsPage() {
       emailNotifications: "Email уведомления",
       english: "English",
       language: "Язык",
+      logout: "Выйти",
       name: "Имя",
       notifications: "Уведомления",
       openSiteSettings: "Управление сайтом",
@@ -525,6 +529,15 @@ export default function SettingsPage() {
                 />
               </div>
             </SettingsCard>
+
+            <Button
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-white text-sm font-black text-red-700 shadow-sm shadow-red-950/5 transition hover:bg-red-50 sm:hidden"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              variant="outline"
+            >
+              <LogOut className="h-4 w-4" />
+              {text.logout}
+            </Button>
           </div>
         </section>
       </div>
