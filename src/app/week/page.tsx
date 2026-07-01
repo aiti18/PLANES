@@ -235,6 +235,7 @@ export default function WeekPage() {
             )
             .map((task) => ({
               ...task,
+              title: capitalizeFirstLetter(task.title),
               createdWeekKey:
                 typeof task.createdWeekKey === "string"
                   ? task.createdWeekKey
@@ -316,6 +317,11 @@ export default function WeekPage() {
     );
 
     if (existingTask) {
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === existingTask.id ? { ...task, title } : task,
+        ),
+      );
       setHiddenTaskIdsByWeek((currentHiddenTaskIdsByWeek) => ({
         ...currentHiddenTaskIdsByWeek,
         [weekKey]: (currentHiddenTaskIdsByWeek[weekKey] ?? []).filter(

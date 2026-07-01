@@ -104,7 +104,9 @@ function normalizeDayTasks(tasks: unknown): DayTask[] {
 
       return {
         title:
-          "title" in task && typeof task.title === "string" ? task.title : "",
+          "title" in task && typeof task.title === "string"
+            ? capitalizeFirstLetter(task.title)
+            : "",
         done: "done" in task && typeof task.done === "boolean" ? task.done : false,
       };
     },

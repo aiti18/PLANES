@@ -296,6 +296,7 @@ export default function MonthPage() {
             )
             .map((task) => ({
               ...task,
+              title: capitalizeFirstLetter(task.title),
               createdMonthKey: getStoredTaskCreatedMonthKey(
                 isMonthKey(task.createdMonthKey)
                   ? task.createdMonthKey
@@ -378,6 +379,11 @@ export default function MonthPage() {
     );
 
     if (existingTask) {
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === existingTask.id ? { ...task, title } : task,
+        ),
+      );
       setHiddenTaskIdsByMonth((currentHiddenTaskIdsByMonth) => ({
         ...currentHiddenTaskIdsByMonth,
         [monthKey]: (currentHiddenTaskIdsByMonth[monthKey] ?? []).filter(
