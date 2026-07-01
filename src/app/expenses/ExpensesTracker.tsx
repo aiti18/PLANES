@@ -2,6 +2,7 @@
 
 import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 const STORAGE_KEY = "planes-expenses-tracker";
 const CURRENCY_STORAGE_KEY = "planes-expenses-currency";
@@ -282,7 +283,7 @@ function EntriesTable({
       amount: parsedAmount * currency.rateToKgs,
       checked: true,
       note: "",
-      title: draftTitle.trim(),
+      title: capitalizeFirstLetter(draftTitle.trim()),
       type,
     });
 

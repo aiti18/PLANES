@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 const storageKey = "planes:year-goals:v1";
 const rowsPerCategory = 20;
@@ -100,7 +101,7 @@ export default function YearGoalsPage() {
     setData((currentData) => ({
       ...currentData,
       goals: currentData.goals.map((goal, index) =>
-        index === rowIndex ? value : goal,
+        index === rowIndex ? capitalizeFirstLetter(value) : goal,
       ),
     }));
   }

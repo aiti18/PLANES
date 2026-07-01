@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 const monthNames = [
   "Январь",
@@ -195,7 +196,9 @@ export default function DayPage() {
     setTasksByDate((currentTasksByDate) => {
       const dayTasks = normalizeDayTasks(currentTasksByDate[dateKey]);
       const nextDayTasks = dayTasks.map((task, index) =>
-        index === taskIndex ? { ...task, title } : task,
+        index === taskIndex
+          ? { ...task, title: capitalizeFirstLetter(title) }
+          : task,
       );
 
       return {
@@ -249,7 +252,9 @@ export default function DayPage() {
   }
 
   function addTask(dateKey: string) {
-    const title = taskDraftsByDate[dateKey]?.trim();
+    const title = capitalizeFirstLetter(
+      taskDraftsByDate[dateKey]?.trim() ?? "",
+    );
 
     if (!title) {
       return;

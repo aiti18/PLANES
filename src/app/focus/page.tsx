@@ -15,7 +15,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 const storageKey = "planes:focus-page:v1";
 const maxHistoryItems = 20;
@@ -415,7 +415,8 @@ export default function FocusPage() {
   }
 
   function finishSession(currentState: FocusState): FocusState {
-    const title = currentState.focusText.trim() || "Фокус-сессия";
+    const title =
+      capitalizeFirstLetter(currentState.focusText.trim()) || "Фокус-сессия";
     const duration = getDurationSeconds(currentState.durationMinutes);
     const elapsedSeconds = Math.max(
       0,

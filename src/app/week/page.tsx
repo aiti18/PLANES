@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const weekDayLong = [
@@ -302,7 +302,7 @@ export default function WeekPage() {
   function addTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const title = newTaskTitle.trim();
+    const title = capitalizeFirstLetter(newTaskTitle.trim());
 
     if (!title) {
       return;
