@@ -8,7 +8,6 @@ import {
   CircleDot,
   GripVertical,
   Plus,
-  RotateCcw,
   Trash2,
   TrendingUp,
 } from "lucide-react";
@@ -400,24 +399,6 @@ export default function WeekPage() {
     });
   }
 
-  function resetWeek() {
-    setTasks(
-      initialTasks.map((task) => ({
-        ...task,
-        createdWeekKey: weekKey,
-      })),
-    );
-    setMarks(createInitialMarks());
-    setHiddenTaskIdsByWeek((currentHiddenTaskIdsByWeek) => {
-      const nextHiddenTaskIdsByWeek = { ...currentHiddenTaskIdsByWeek };
-      delete nextHiddenTaskIdsByWeek[weekKey];
-      return nextHiddenTaskIdsByWeek;
-    });
-    setFocus(defaultFocus);
-    setNotes(defaultNotes);
-    setNewTaskTitle("");
-  }
-
   if (!isStorageReady) {
     return (
       <AppLayout>
@@ -449,19 +430,10 @@ export default function WeekPage() {
         <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_250px]">
           <aside className="space-y-4">
             <section className="rounded-md border border-emerald-900/15 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="mb-3">
                 <p className="text-xs font-black uppercase text-emerald-900">
                   Пункты недели
                 </p>
-                <button
-                  aria-label="Сбросить неделю"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 shadow-sm transition hover:bg-emerald-50"
-                  onClick={resetWeek}
-                  title="Сбросить неделю"
-                  type="button"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </button>
               </div>
 
               <form className="mb-3 flex gap-2" onSubmit={addTask}>

@@ -8,7 +8,6 @@ import {
   CircleDot,
   GripVertical,
   Plus,
-  RotateCcw,
   Trash2,
   TrendingUp,
 } from "lucide-react";
@@ -468,24 +467,6 @@ export default function MonthPage() {
     setMonthDate(clampMonthDate(nextDate));
   }
 
-  function resetMonth() {
-    setTasks(
-      initialTasks.map((task) => ({
-        ...task,
-        createdMonthKey: firstTaskMonthKey,
-      })),
-    );
-    setMarks(createInitialMarks(monthDate));
-    setHiddenTaskIdsByMonth((currentHiddenTaskIdsByMonth) => {
-      const nextHiddenTaskIdsByMonth = { ...currentHiddenTaskIdsByMonth };
-      delete nextHiddenTaskIdsByMonth[monthKey];
-      return nextHiddenTaskIdsByMonth;
-    });
-    setFocus(defaultFocus);
-    setNotes(defaultNotes);
-    setNewTaskTitle("");
-  }
-
   if (!isStorageReady) {
     return (
       <AppLayout>
@@ -582,15 +563,6 @@ export default function MonthPage() {
                   выполнено
                   <span className="ml-2 h-3 w-3 rounded-full border-2 border-emerald-700 bg-white" />
                   пусто
-                  <button
-                    aria-label="Сбросить демо-данные"
-                    className="ml-2 flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 shadow-sm transition hover:bg-emerald-50"
-                    onClick={resetMonth}
-                    title="Сбросить демо-данные"
-                    type="button"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
 

@@ -7,7 +7,6 @@ import {
   CircleDot,
   GripVertical,
   Plus,
-  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -332,18 +331,6 @@ export default function DayPage() {
     }
   }
 
-  function resetMonth() {
-    setTasksByDate((currentTasksByDate) => {
-      const nextTasksByDate = { ...currentTasksByDate };
-
-      days.forEach((day) => {
-        delete nextTasksByDate[getDateKey(day)];
-      });
-
-      return nextTasksByDate;
-    });
-  }
-
   if (!isStorageReady) {
     return (
       <AppLayout>
@@ -399,15 +386,6 @@ export default function DayPage() {
               type="button"
             >
               <ChevronRight className="h-4 w-4" />
-            </button>
-            <button
-              aria-label="Очистить месяц"
-              className="ml-2 flex h-9 w-9 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 transition hover:bg-emerald-50"
-              onClick={resetMonth}
-              title="Очистить месяц"
-              type="button"
-            >
-              <RotateCcw className="h-4 w-4" />
             </button>
           </div>
         </header>

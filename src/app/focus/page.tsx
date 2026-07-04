@@ -8,7 +8,6 @@ import {
   Maximize2,
   Pause,
   Play,
-  RotateCcw,
   Target,
   X,
 } from "lucide-react";
@@ -462,15 +461,6 @@ export default function FocusPage() {
     }));
   }
 
-  function resetSession() {
-    setState((currentState) => ({
-      ...currentState,
-      lastTickAt: null,
-      remainingSeconds: getDurationSeconds(currentState.durationMinutes),
-      status: "idle",
-    }));
-  }
-
   function completeNow() {
     setState((currentState) => finishSession(currentState));
   }
@@ -648,7 +638,7 @@ export default function FocusPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Button
                   className="h-12 rounded-md bg-emerald-900 font-black text-white hover:bg-emerald-800"
                   disabled={!canStart || isRunning}
@@ -665,14 +655,6 @@ export default function FocusPage() {
                 >
                   <Pause className="h-4 w-4" />
                   Пауза
-                </Button>
-                <Button
-                  className="h-12 rounded-md border-emerald-900/20 font-black text-emerald-950 hover:bg-emerald-50"
-                  onClick={resetSession}
-                  variant="outline"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Сброс
                 </Button>
               </div>
 
