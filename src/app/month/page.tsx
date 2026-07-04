@@ -644,7 +644,7 @@ export default function MonthPage() {
                         key={task.id}
                         {...sortableTasks.getItemProps(task.id)}
                       >
-                        <div className="flex min-h-10 items-center gap-1 rounded-md bg-emerald-50 px-2 text-xs font-bold text-slate-700">
+                        <div className="flex min-h-10 items-center gap-1 rounded-md bg-emerald-50 px-2 py-2 text-xs font-bold text-slate-700">
                           <button
                             aria-label={`Изменить порядок пункта "${task.title}"`}
                             className="flex h-8 w-6 shrink-0 touch-none cursor-grab items-center justify-center text-slate-400 active:cursor-grabbing active:text-emerald-800"
@@ -654,7 +654,9 @@ export default function MonthPage() {
                           >
                             <GripVertical className="h-4 w-4" />
                           </button>
-                          <span className="min-w-0 flex-1 truncate">{task.title}</span>
+                          <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">
+                            {task.title}
+                          </span>
                           <button
                             aria-label={`Удалить пункт "${task.title}" только из месяца ${monthTitle}`}
                             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-600"
