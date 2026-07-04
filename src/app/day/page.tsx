@@ -5,11 +5,13 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  GripVertical,
   Plus,
   RotateCcw,
   Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter } from "@/lib/utils";
 
 const monthNames = [
@@ -33,6 +35,7 @@ const defaultMonthDate = new Date(2026, 0, 1);
 const tasksPerDay = 3;
 
 type DayTask = {
+  id: string;
   title: string;
   done: boolean;
 };
@@ -85,7 +88,11 @@ function getWeekdayIndex(date: Date) {
 }
 
 function createEmptyDayTasks() {
-  return Array.from({ length: tasksPerDay }, () => ({ title: "", done: false }));
+  return Array.from({ length: tasksPerDay }, (_, index) => ({
+    id: `default-${index}`,
+    title: "",
+    done: false,
+  }));
 }
 
 function normalizeDayTasks(tasks: unknown): DayTask[] {
@@ -99,10 +106,14 @@ function normalizeDayTasks(tasks: unknown): DayTask[] {
       const task = tasks[index];
 
       if (!task || typeof task !== "object") {
-        return { title: "", done: false };
+        return { id: `default-${index}`, title: "", done: false };
       }
 
       return {
+        id:
+          "id" in task && typeof task.id === "string"
+            ? task.id
+            : `legacy-${index}`,
         title:
           "title" in task && typeof task.title === "string"
             ? capitalizeFirstLetter(task.title)
@@ -110,6 +121,14 @@ function normalizeDayTasks(tasks: unknown): DayTask[] {
         done: "done" in task && typeof task.done === "boolean" ? task.done : false,
       };
     },
+  );
+}
+
+function isRemovableDayTask(task: DayTask) {
+  return (
+    task.id.startsWith("added-") ||
+    (task.id.startsWith("legacy-") &&
+      Number(task.id.slice("legacy-".length)) >= tasksPerDay)
   );
 }
 
@@ -135,6 +154,27 @@ export default function DayPage() {
 
     return sum + dayTasks.filter((task) => task.title.trim()).length;
   }, 0);
+
+  const sortableTasks = useSortableList((sourceId, targetId) => {
+    const [sourceDateKey, sourceTaskId] = sourceId.split("|");
+    const [targetDateKey, targetTaskId] = targetId.split("|");
+
+    if (sourceDateKey !== targetDateKey) return;
+
+    setTasksByDate((currentTasksByDate) => {
+      const dayTasks = normalizeDayTasks(currentTasksByDate[sourceDateKey]);
+      const sourceIndex = dayTasks.findIndex((task) => task.id === sourceTaskId);
+      const targetIndex = dayTasks.findIndex((task) => task.id === targetTaskId);
+
+      if (sourceIndex < 0 || targetIndex < 0) return currentTasksByDate;
+
+      const nextDayTasks = [...dayTasks];
+      const [movedTask] = nextDayTasks.splice(sourceIndex, 1);
+      nextDayTasks.splice(targetIndex, 0, movedTask);
+
+      return { ...currentTasksByDate, [sourceDateKey]: nextDayTasks };
+    });
+  });
 
   useEffect(() => {
     const storedValue = window.localStorage.getItem(storageKey);
@@ -225,12 +265,11 @@ export default function DayPage() {
   }
 
   function deleteTask(dateKey: string, taskIndex: number) {
-    if (taskIndex < tasksPerDay) {
-      return;
-    }
-
     setTasksByDate((currentTasksByDate) => {
       const dayTasks = normalizeDayTasks(currentTasksByDate[dateKey]);
+      const task = dayTasks[taskIndex];
+
+      if (!task || !isRemovableDayTask(task)) return currentTasksByDate;
 
       return {
         ...currentTasksByDate,
@@ -267,7 +306,10 @@ export default function DayPage() {
 
       return {
         ...currentTasksByDate,
-        [dateKey]: [...dayTasks, { title, done: false }],
+        [dateKey]: [
+          ...dayTasks,
+          { id: `added-${Date.now()}`, title, done: false },
+        ],
       };
     });
     setTaskDraftsByDate((currentDrafts) => ({
@@ -409,12 +451,22 @@ export default function DayPage() {
                     {dayTasks.map((task, taskIndex) => (
                       <div
                         className={
-                          taskIndex >= tasksPerDay
-                            ? "grid min-h-9 grid-cols-[minmax(0,1fr)_44px_44px] items-center"
-                            : "grid min-h-9 grid-cols-[minmax(0,1fr)_44px] items-center"
+                          isRemovableDayTask(task)
+                            ? "grid min-h-9 grid-cols-[32px_minmax(0,1fr)_44px_44px] items-center"
+                            : "grid min-h-9 grid-cols-[32px_minmax(0,1fr)_44px] items-center"
                         }
-                        key={`${dateKey}-${taskIndex}`}
+                        key={`${dateKey}-${task.id}`}
+                        {...sortableTasks.getItemProps(`${dateKey}|${task.id}`)}
                       >
+                        <button
+                          aria-label={`Изменить порядок задачи ${taskIndex + 1}, ${day.getDate()} день`}
+                          className="flex h-9 touch-none cursor-grab items-center justify-center text-slate-400 active:cursor-grabbing active:text-emerald-800"
+                          title="Перетащите, чтобы изменить порядок"
+                          type="button"
+                          {...sortableTasks.getHandleProps(`${dateKey}|${task.id}`)}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
                         <input
                           aria-label={`Задача ${taskIndex + 1}, ${day.getDate()} день`}
                           className="h-9 min-w-0 bg-transparent px-3 text-center text-xs font-semibold text-slate-700 outline-none placeholder:text-slate-400 focus:bg-emerald-50"
@@ -424,7 +476,7 @@ export default function DayPage() {
                           placeholder="Задача"
                           value={task.title}
                         />
-                        {taskIndex >= tasksPerDay && (
+                        {isRemovableDayTask(task) && (
                           <button
                             aria-label={`Удалить задачу ${taskIndex + 1}, ${day.getDate()} день`}
                             className="flex h-9 items-center justify-center border-l border-emerald-900/10 bg-white/70 text-slate-400 transition hover:bg-red-50 hover:text-red-600"

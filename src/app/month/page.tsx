@@ -6,12 +6,14 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  GripVertical,
   Plus,
   RotateCcw,
   Trash2,
   TrendingUp,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -233,6 +235,20 @@ export default function MonthPage() {
   const taskPendingDelete = taskIdPendingDelete
     ? tasks.find((task) => task.id === taskIdPendingDelete)
     : null;
+
+  const sortableTasks = useSortableList((sourceId, targetId) => {
+    setTasks((currentTasks) => {
+      const sourceIndex = currentTasks.findIndex((task) => task.id === sourceId);
+      const targetIndex = currentTasks.findIndex((task) => task.id === targetId);
+
+      if (sourceIndex < 0 || targetIndex < 0) return currentTasks;
+
+      const nextTasks = [...currentTasks];
+      const [movedTask] = nextTasks.splice(sourceIndex, 1);
+      nextTasks.splice(targetIndex, 0, movedTask);
+      return nextTasks;
+    });
+  });
 
   const completedMarks = days.reduce(
     (sum, day) =>
@@ -568,7 +584,17 @@ export default function MonthPage() {
                   <div
                     className="flex w-full items-center gap-2 rounded-md border border-emerald-900/10 bg-[#f8faf5] px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700/40 hover:bg-emerald-50"
                     key={task.id}
+                    {...sortableTasks.getItemProps(task.id)}
                   >
+                    <button
+                      aria-label={`Изменить порядок пункта "${task.title}"`}
+                      className="flex h-8 w-6 shrink-0 touch-none cursor-grab items-center justify-center text-slate-400 active:cursor-grabbing active:text-emerald-800"
+                      title="Перетащите, чтобы изменить порядок"
+                      type="button"
+                      {...sortableTasks.getHandleProps(task.id)}
+                    >
+                      <GripVertical className="h-5 w-5" />
+                    </button>
                     <span className="min-w-0 flex-1 px-1">{task.title}</span>
                     <button
                       aria-label={`Удалить пункт "${task.title}" только из месяца ${monthTitle}`}
