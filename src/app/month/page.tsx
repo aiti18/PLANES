@@ -543,86 +543,7 @@ export default function MonthPage() {
           </div>
         </header>
 
-        <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="space-y-4">
-            <section className="rounded-md border border-emerald-900/15 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-xs font-black uppercase text-emerald-900">
-                  Пункты месяца
-                </p>
-                <button
-                  aria-label="Сбросить демо-данные"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 shadow-sm transition hover:bg-emerald-50"
-                  onClick={resetMonth}
-                  title="Сбросить демо-данные"
-                  type="button"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </button>
-              </div>
-
-              <form className="mb-3 flex gap-2" onSubmit={addTask}>
-                <input
-                  className="min-w-0 flex-1 rounded-md border border-emerald-900/20 bg-[#f8faf5] px-3 py-2 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/20"
-                  onChange={(event) => setNewTaskTitle(event.target.value)}
-                  placeholder="Новый пункт"
-                  value={newTaskTitle}
-                />
-                <button
-                  aria-label="Добавить пункт"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
-                  disabled={!newTaskTitle.trim()}
-                  title="Добавить пункт"
-                  type="submit"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </form>
-
-              <div className="space-y-2">
-                {visibleTasks.map((task) => (
-                  <div
-                    className="flex w-full items-center gap-2 rounded-md border border-emerald-900/10 bg-[#f8faf5] px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700/40 hover:bg-emerald-50"
-                    key={task.id}
-                    {...sortableTasks.getItemProps(task.id)}
-                  >
-                    <button
-                      aria-label={`Изменить порядок пункта "${task.title}"`}
-                      className="flex h-8 w-6 shrink-0 touch-none cursor-grab items-center justify-center text-slate-400 active:cursor-grabbing active:text-emerald-800"
-                      title="Перетащите, чтобы изменить порядок"
-                      type="button"
-                      {...sortableTasks.getHandleProps(task.id)}
-                    >
-                      <GripVertical className="h-5 w-5" />
-                    </button>
-                    <span className="min-w-0 flex-1 px-1">{task.title}</span>
-                    <button
-                      aria-label={`Удалить пункт "${task.title}" только из месяца ${monthTitle}`}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-900/10 bg-white text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                      onClick={() => setTaskIdPendingDelete(task.id)}
-                      title="Удалить только из этого месяца"
-                      type="button"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-md border border-emerald-900/15 bg-white p-4 shadow-sm">
-              <p className="text-xs font-black uppercase text-emerald-900">
-                Главный фокус
-              </p>
-              <textarea
-                className="mt-3 min-h-28 w-full resize-none rounded-md border border-emerald-900/20 bg-emerald-50/70 p-3 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/20"
-                onChange={(event) => setFocus(event.target.value)}
-                value={focus}
-              />
-            </section>
-          </aside>
-
-          <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-4">
             <section className="min-w-0 rounded-md border border-emerald-900/15 bg-white p-3 shadow-sm sm:p-4">
               <div className="mb-4 flex flex-col gap-3 border-b border-emerald-900/15 pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -661,6 +582,15 @@ export default function MonthPage() {
                   выполнено
                   <span className="ml-2 h-3 w-3 rounded-full border-2 border-emerald-700 bg-white" />
                   пусто
+                  <button
+                    aria-label="Сбросить демо-данные"
+                    className="ml-2 flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 shadow-sm transition hover:bg-emerald-50"
+                    onClick={resetMonth}
+                    title="Сбросить демо-данные"
+                    type="button"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
 
@@ -669,12 +599,30 @@ export default function MonthPage() {
                   <div
                     className="grid gap-1"
                     style={{
-                      gridTemplateColumns: `minmax(150px, 180px) repeat(${visibleDays.length}, minmax(24px, 1fr))`,
+                      gridTemplateColumns: `minmax(230px, 280px) repeat(${visibleDays.length}, minmax(24px, 1fr))`,
                     }}
                   >
-                    <div className="rounded-md bg-emerald-950 px-3 py-2 text-xs font-black uppercase text-white">
-                      Действие
-                    </div>
+                    <form
+                      className="flex h-10 items-center gap-2 rounded-md bg-emerald-950 p-1"
+                      onSubmit={addTask}
+                    >
+                      <input
+                        aria-label="Новый пункт месяца"
+                        className="h-8 min-w-0 flex-1 rounded bg-white px-2 text-xs font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-lime-300/50"
+                        onChange={(event) => setNewTaskTitle(event.target.value)}
+                        placeholder="Новый пункт"
+                        value={newTaskTitle}
+                      />
+                      <button
+                        aria-label="Добавить пункт"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-45"
+                        disabled={!newTaskTitle.trim()}
+                        title="Добавить пункт"
+                        type="submit"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </form>
                     {visibleDays.map((day) => (
                       <div
                         className="flex h-10 flex-col items-center justify-center rounded-md bg-emerald-950 text-white"
@@ -691,9 +639,31 @@ export default function MonthPage() {
                     ))}
 
                     {visibleTasks.map((task) => (
-                      <div className="contents" key={task.id}>
-                        <div className="flex min-h-10 items-center rounded-md bg-emerald-50 px-3 text-xs font-bold text-slate-700">
-                          {task.title}
+                      <div
+                        className="contents"
+                        key={task.id}
+                        {...sortableTasks.getItemProps(task.id)}
+                      >
+                        <div className="flex min-h-10 items-center gap-1 rounded-md bg-emerald-50 px-2 text-xs font-bold text-slate-700">
+                          <button
+                            aria-label={`Изменить порядок пункта "${task.title}"`}
+                            className="flex h-8 w-6 shrink-0 touch-none cursor-grab items-center justify-center text-slate-400 active:cursor-grabbing active:text-emerald-800"
+                            title="Перетащите, чтобы изменить порядок"
+                            type="button"
+                            {...sortableTasks.getHandleProps(task.id)}
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </button>
+                          <span className="min-w-0 flex-1 truncate">{task.title}</span>
+                          <button
+                            aria-label={`Удалить пункт "${task.title}" только из месяца ${monthTitle}`}
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                            onClick={() => setTaskIdPendingDelete(task.id)}
+                            title="Удалить только из этого месяца"
+                            type="button"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                         {visibleDays.map((day) => {
                           const marked = marks.has(getMarkKey(monthKey, task.id, day));
@@ -726,7 +696,7 @@ export default function MonthPage() {
               </div>
             </section>
 
-            <aside className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_240px_240px]">
+            <aside className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(240px,0.8fr)_240px_240px]">
               <section className="rounded-md border border-emerald-900/15 bg-white p-4 shadow-sm">
               <p className="mb-4 text-xs font-black uppercase text-emerald-900">
                 Разделы
@@ -754,6 +724,17 @@ export default function MonthPage() {
               </div>
               </section>
 
+              <section className="rounded-md border border-emerald-900/15 bg-white p-4 shadow-sm">
+                <p className="text-xs font-black uppercase text-emerald-900">
+                  Главный фокус
+                </p>
+                <textarea
+                  className="mt-3 min-h-32 w-full resize-none rounded-md border border-emerald-900/20 bg-emerald-50/70 p-3 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/20"
+                  onChange={(event) => setFocus(event.target.value)}
+                  value={focus}
+                />
+              </section>
+
               <section className="rounded-md border border-emerald-900/15 bg-emerald-950 p-4 text-white shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs font-black uppercase">Прогресс</p>
@@ -778,7 +759,6 @@ export default function MonthPage() {
               />
               </section>
             </aside>
-          </div>
         </div>
       </div>
 
