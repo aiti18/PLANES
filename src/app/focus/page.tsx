@@ -195,7 +195,7 @@ function AnalogTimer({
   const angle = progress * 360 - 90;
 
   return (
-    <div className="relative mx-auto h-56 w-56 rounded-full bg-black shadow-inner shadow-red-950/40">
+    <div className="relative mx-auto h-56 w-56 rounded-full bg-emerald-950 shadow-inner shadow-emerald-950/40">
       {dots.map((dot) => {
         const dotAngle = (dot / dots.length) * Math.PI * 2;
         const radius = 82;
@@ -218,7 +218,7 @@ function AnalogTimer({
 
       <span className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
       <span
-        className="absolute left-1/2 top-1/2 h-0.5 w-20 origin-left bg-white shadow-sm shadow-white/70"
+        className="absolute left-1/2 top-1/2 h-0.5 w-20 origin-left bg-lime-100 shadow-sm shadow-lime-100/70"
         style={{ transform: `rotate(${angle}deg)` }}
       />
       <div className="absolute inset-x-0 bottom-9 text-center font-mono text-sm font-black text-white/75">
@@ -356,9 +356,9 @@ export default function FocusPage() {
     const previousHtmlBackground = htmlElement.style.background;
 
     htmlElement.style.overflow = "hidden";
-    htmlElement.style.background = "#000";
+    htmlElement.style.background = "#123c33";
     document.body.style.overflow = "hidden";
-    document.body.style.background = "#000";
+    document.body.style.background = "#123c33";
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -476,7 +476,7 @@ export default function FocusPage() {
   const timerFullscreenLayer =
     typeof document !== "undefined" && isTimerFullscreen
       ? createPortal(
-          <div className="fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden bg-black px-5 text-white">
+          <div className="fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col items-center justify-center overflow-hidden bg-[#123c33] px-5 text-white">
             <button
               aria-label="Закрыть полноэкранный таймер"
               className="fixed right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
@@ -488,10 +488,10 @@ export default function FocusPage() {
             </button>
 
             <div className="w-full max-w-5xl text-center">
-              <p className="font-mono text-[clamp(4.5rem,19vw,13rem)] font-black leading-none text-red-600 [text-shadow:0_0_32px_rgba(220,38,38,0.95)]">
+              <p className="font-mono text-[clamp(4.5rem,19vw,13rem)] font-black leading-none text-lime-200 [text-shadow:0_0_32px_rgba(190,242,100,0.75)]">
                 {formatTimer(state.remainingSeconds)}
               </p>
-              <p className="mt-6 text-sm font-black uppercase tracking-[0.28em] text-red-200/80 sm:text-base">
+              <p className="mt-6 text-sm font-black uppercase tracking-[0.28em] text-emerald-50/80 sm:text-base">
                 {state.status === "running"
                   ? "Фокус активен"
                   : state.status === "paused"
@@ -667,14 +667,14 @@ export default function FocusPage() {
             </CardContent>
           </Card>
 
-	          <Card className="overflow-hidden border-0 bg-black text-white shadow-sm shadow-emerald-950/10">
+	          <Card className="overflow-hidden border-0 bg-[#123c33] text-white shadow-sm shadow-emerald-950/10">
 	            <CardContent className="grid gap-6 p-5 sm:p-7">
-	              <div className="relative rounded-md border border-red-500/20 bg-black p-5 text-center">
-	                <p className="font-mono text-6xl font-black leading-none text-red-600 [text-shadow:0_0_18px_rgba(220,38,38,0.9)] sm:text-7xl">
+	              <div className="relative rounded-md border border-emerald-50/15 bg-emerald-950/30 p-5 text-center">
+	                <p className="font-mono text-6xl font-black leading-none text-lime-200 [text-shadow:0_0_18px_rgba(190,242,100,0.75)] sm:text-7xl">
 	                  {formatTimer(state.remainingSeconds)}
 	                </p>
 	                <div className="mt-3 flex items-center justify-center gap-3">
-	                  <p className="text-xs font-black uppercase tracking-wide text-red-200/80">
+	                  <p className="text-xs font-black uppercase tracking-wide text-emerald-50/80">
 	                    {state.status === "running"
 	                      ? "Фокус активен"
 	                      : state.status === "paused"
@@ -685,7 +685,7 @@ export default function FocusPage() {
 	                  </p>
 	                  <button
 	                    aria-label="Открыть таймер на весь экран"
-	                    className="flex h-8 w-16 items-center justify-center rounded-full border-4 border-yellow-300 text-yellow-200 shadow-[0_0_14px_rgba(253,224,71,0.85)] transition hover:bg-yellow-300/10 sm:absolute sm:right-4 sm:top-1/2 sm:-translate-y-1/2"
+	                    className="flex h-8 w-16 items-center justify-center rounded-full border-4 border-lime-200 text-lime-100 shadow-[0_0_14px_rgba(190,242,100,0.75)] transition hover:bg-lime-200/10 sm:absolute sm:right-4 sm:top-1/2 sm:-translate-y-1/2"
 	                    onClick={() => setIsTimerFullscreen(true)}
 	                    title="Во весь экран"
 	                    type="button"
