@@ -14,7 +14,17 @@ function maskEmail(email: string) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { message: "Некорректный JSON" },
+      { status: 400 },
+    );
+  }
+
   const parsedBody = registerSchema.safeParse(body);
 
   if (!parsedBody.success) {

@@ -21,6 +21,15 @@ function formatMoney(amount: number) {
   }).format(amount);
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function POST(request: Request) {
   const session = await auth();
 
@@ -28,7 +37,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Не авторизован" }, { status: 401 });
   }
 
-  const parsedBody = digestSchema.safeParse(await request.json());
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { message: "Некорректный JSON" },
+      { status: 400 },
+    );
+  }
+
+  const parsedBody = digestSchema.safeParse(body);
 
   if (!parsedBody.success) {
     return NextResponse.json({ message: "Некорректная сводка" }, { status: 400 });
@@ -56,8 +76,9 @@ export async function POST(request: Request) {
   }
 
   const digest = parsedBody.data;
+  const escapedMonth = escapeHtml(digest.month);
   const details = digest.lines.length
-    ? digest.lines.map((line) => `<li>${line}</li>`).join("")
+    ? digest.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")
     : "<li>Критичных напоминаний нет.</li>";
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -66,7 +87,7 @@ export async function POST(request: Request) {
       html: `
         <div style="font-family: Arial, sans-serif; color: #123c33;">
           <h1>Финансовая сводка Planes</h1>
-          <p>Месяц: <strong>${digest.month}</strong></p>
+          <p>Месяц: <strong>${escapedMonth}</strong></p>
           <ul>
             <li>Доходы: <strong>${formatMoney(digest.income)}</strong></li>
             <li>Траты: <strong>${formatMoney(digest.expenses)}</strong></li>
