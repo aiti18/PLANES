@@ -239,7 +239,6 @@ export default function FocusPage() {
     durationSeconds === 0
       ? 0
       : (durationSeconds - state.remainingSeconds) / durationSeconds;
-  const canStart = state.focusText.trim().length > 0;
   const isRunning = state.status === "running";
   const completedToday = useMemo(() => {
     const todayKey = getTodayKey();
@@ -438,10 +437,6 @@ export default function FocusPage() {
   }
 
   function startSession() {
-    if (!canStart) {
-      return;
-    }
-
     setState((currentState) => ({
       ...currentState,
       lastTickAt: Date.now(),
@@ -501,7 +496,7 @@ export default function FocusPage() {
                       : "Готов к старту"}
               </p>
               <p className="mx-auto mt-8 max-w-3xl break-words text-xl font-black leading-8 text-white/90 sm:text-3xl sm:leading-10">
-                {state.focusText.trim() || "Напишите задачу для концентрации"}
+                {state.focusText.trim() || "Фокус-сессия"}
               </p>
             </div>
           </div>,
@@ -641,7 +636,7 @@ export default function FocusPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button
                   className="h-12 rounded-md bg-emerald-900 font-black text-white hover:bg-emerald-800"
-                  disabled={!canStart || isRunning}
+                  disabled={isRunning}
                   onClick={startSession}
                 >
                   <Play className="h-4 w-4" />
@@ -705,12 +700,11 @@ export default function FocusPage() {
                   Текущий фокус
                 </p>
                 <p className="mt-2 break-words text-lg font-black">
-                  {state.focusText.trim() || "Напишите задачу слева"}
+                  {state.focusText.trim() || "Фокус-сессия"}
                 </p>
                 <button
                   className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/15 px-4 text-sm font-black text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={
-                    !canStart ||
                     state.status === "idle" ||
                     state.status === "finished"
                   }
