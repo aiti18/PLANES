@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/lib/router";
 import { Github, Linkedin, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 

@@ -8,7 +8,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { signOutLocal } from "@/lib/client-auth";
 
 const storageKey = "planes:settings:v1";
 const settingsUpdatedEvent = "planes:settings-updated";
@@ -35,10 +36,6 @@ type SettingsState = {
   photo: string;
   privateMode: boolean;
   pushNotifications: boolean;
-};
-
-type ProfileResponse = {
-  profilePhoto?: string;
 };
 
 const defaultSettings: SettingsState = {
@@ -195,6 +192,7 @@ function SettingsCard({
 }
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const hasLoadedStorage = useRef(false);
   const [settings, setSettings] = useState(defaultSettings);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
@@ -275,60 +273,6 @@ export default function SettingsPage() {
 
     hasLoadedStorage.current = true;
 
-    async function syncProfilePhoto() {
-      try {
-        const response = await fetch("/api/profile", { cache: "no-store" });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const profile = (await response.json()) as ProfileResponse;
-        let profilePhoto = profile.profilePhoto ?? "";
-
-        if (!profilePhoto && storedSettings.photo) {
-          let photoForMigration = storedSettings.photo;
-
-          try {
-            photoForMigration = await createProfilePhotoDataUrlFromSource(
-              storedSettings.photo,
-            );
-          } catch {
-            photoForMigration = storedSettings.photo;
-          }
-
-          const migrationResponse = await fetch("/api/profile", {
-            body: JSON.stringify({ profilePhoto: photoForMigration }),
-            headers: { "Content-Type": "application/json" },
-            method: "PATCH",
-          });
-
-          if (migrationResponse.ok) {
-            const migratedProfile =
-              (await migrationResponse.json()) as ProfileResponse;
-            profilePhoto = migratedProfile.profilePhoto ?? "";
-            window.dispatchEvent(new Event(profileUpdatedEvent));
-          } else {
-            profilePhoto = storedSettings.photo;
-          }
-        }
-
-        if (!isMounted) {
-          return;
-        }
-
-        setSettings((currentSettings) => ({
-          ...currentSettings,
-          photo: profilePhoto,
-        }));
-        setPhotoDraft(profilePhoto);
-      } catch {
-        // Local settings are still usable if the profile API is unavailable.
-      }
-    }
-
-    void syncProfilePhoto();
-
     return () => {
       isMounted = false;
     };
@@ -354,18 +298,9 @@ export default function SettingsPage() {
     setIsSavingPhoto(true);
 
     try {
-      const response = await fetch("/api/profile", {
-        body: JSON.stringify({ profilePhoto: photoDraft }),
-        headers: { "Content-Type": "application/json" },
-        method: "PATCH",
-      });
-
-      if (!response.ok) {
-        throw new Error("Photo save failed");
-      }
-
-      const profile = (await response.json()) as ProfileResponse;
-      const profilePhoto = profile.profilePhoto ?? "";
+      const profilePhoto = photoDraft
+        ? await createProfilePhotoDataUrlFromSource(photoDraft)
+        : "";
 
       setPhotoDraft(profilePhoto);
       updateSettings({ photo: profilePhoto });
@@ -532,7 +467,10 @@ export default function SettingsPage() {
 
             <Button
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-white text-sm font-black text-red-700 shadow-sm shadow-red-950/5 transition hover:bg-red-50 sm:hidden"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => {
+                signOutLocal();
+                navigate("/login", { replace: true });
+              }}
               variant="outline"
             >
               <LogOut className="h-4 w-4" />

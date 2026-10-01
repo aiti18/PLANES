@@ -4,7 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Footer } from "@/components/layout/Footer";
 import { NotificationBridge } from "@/components/notifications/NotificationBridge";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/lib/router";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 

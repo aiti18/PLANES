@@ -2,8 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Chrome, Instagram, Send, type LucideIcon } from "lucide-react";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoginInput, loginSchema } from "@/lib/validators/auth";
+import { signInLocal } from "@/lib/client-auth";
+import { Link } from "@/lib/router";
 
 function VkIcon({ className }: { className?: string }) {
   return (
@@ -76,6 +77,7 @@ const copy = {
 } satisfies Record<Language, Record<string, string>>;
 
 export function LoginForm() {
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
@@ -91,11 +93,7 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await signIn("credentials", {
-        ...values,
-        callbackUrl: "/",
-        redirect: false,
-      });
+      const result = await signInLocal(values);
 
       if (result?.error) {
         toast.error(t.error);
@@ -105,7 +103,7 @@ export function LoginForm() {
 
       toast.success(t.success);
       window.setTimeout(() => {
-        window.location.assign(result?.url ?? "/");
+        navigate("/", { replace: true });
       }, 650);
     } catch {
       toast.error(t.retry);

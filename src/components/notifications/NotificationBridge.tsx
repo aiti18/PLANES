@@ -114,22 +114,14 @@ function getTodayKey(prefix: string) {
   return `${prefix}:${new Date().toISOString().slice(0, 10)}`;
 }
 
-async function sendEmailDigest() {
+function markEmailDigestLocally() {
   const todayKey = getTodayKey(emailDigestSentKey);
 
   if (window.localStorage.getItem(todayKey)) {
     return;
   }
 
-  const response = await fetch("/api/notifications/digest", {
-    body: JSON.stringify(createDigest()),
-    headers: { "Content-Type": "application/json" },
-    method: "POST",
-  });
-
-  if (response.ok) {
-    window.localStorage.setItem(todayKey, "true");
-  }
+  window.localStorage.setItem(todayKey, "true");
 }
 
 function sendPushDigest() {
@@ -160,7 +152,7 @@ export function NotificationBridge() {
       const settings = readJson<Settings>(settingsStorageKey, {});
 
       if (settings.emailNotifications) {
-        void sendEmailDigest();
+        markEmailDigestLocally();
       }
 
       if (settings.pushNotifications) {

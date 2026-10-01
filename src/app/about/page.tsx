@@ -36,12 +36,13 @@ const reasons = [
 ];
 
 const stack = [
-  "Next.js",
+  "Vite",
   "React",
   "TypeScript",
-  "PostgreSQL",
-  "Prisma",
-  "Docker",
+  "React Router",
+  "Tailwind CSS",
+  "LocalStorage",
+  "GitHub Pages",
 ];
 
 export default function AboutPage() {

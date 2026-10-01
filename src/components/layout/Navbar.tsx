@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { LogOut, Menu, Plane, X } from "lucide-react";
-import { signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar-store";
+import { signOutLocal } from "@/lib/client-auth";
+import { Link, usePathname } from "@/lib/router";
 
 const navItems = [
   { href: "/", label: { en: "Home", ru: "Главная" } },
@@ -24,10 +24,6 @@ type NavbarSettings = {
   language?: string;
   name?: string;
   photo?: string;
-};
-
-type ProfileResponse = {
-  profilePhoto?: string;
 };
 
 function getNavbarSettings(): NavbarSettings {
@@ -50,51 +46,24 @@ function getNavbarSettings(): NavbarSettings {
 
 export function Navbar() {
   const pathname = usePathname();
+  const navigate = useNavigate();
   const { isSidebarOpen, toggleSidebar } = useSidebarStore();
   const [navbarSettings, setNavbarSettings] = useState<NavbarSettings>({});
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function syncProfilePhoto() {
-      try {
-        const response = await fetch("/api/profile", { cache: "no-store" });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const profile = (await response.json()) as ProfileResponse;
-        const profilePhoto = profile.profilePhoto ?? "";
-
-        if (!isMounted) {
-          return;
-        }
-
-        setNavbarSettings((currentSettings) => ({
-          ...currentSettings,
-          photo: profilePhoto || currentSettings.photo || "",
-        }));
-      } catch {
-        // The local profile settings still give us a usable fallback.
-      }
-    }
-
     function syncSettings() {
       setNavbarSettings(getNavbarSettings());
-      void syncProfilePhoto();
     }
 
     syncSettings();
     window.addEventListener("storage", syncSettings);
     window.addEventListener(settingsUpdatedEvent, syncSettings);
-    window.addEventListener(profileUpdatedEvent, syncProfilePhoto);
+    window.addEventListener(profileUpdatedEvent, syncSettings);
 
     return () => {
-      isMounted = false;
       window.removeEventListener("storage", syncSettings);
       window.removeEventListener(settingsUpdatedEvent, syncSettings);
-      window.removeEventListener(profileUpdatedEvent, syncProfilePhoto);
+      window.removeEventListener(profileUpdatedEvent, syncSettings);
     };
   }, []);
 
@@ -217,7 +186,10 @@ export function Navbar() {
                 ? "border-white/20 text-white hover:bg-slate-800"
                 : "text-[#123c33]",
             )}
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => {
+              signOutLocal();
+              navigate("/login", { replace: true });
+            }}
             variant="outline"
           >
             <LogOut className="h-4 w-4" />

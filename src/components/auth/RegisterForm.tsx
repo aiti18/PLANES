@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegisterInput, registerSchema } from "@/lib/validators/auth";
+import { registerLocalUser } from "@/lib/client-auth";
+import { Link } from "@/lib/router";
 
 type Language = "en" | "ru";
 
@@ -46,6 +48,7 @@ const copy = {
 } satisfies Record<Language, Record<string, string>>;
 
 export function RegisterForm() {
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
@@ -61,21 +64,16 @@ export function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const result = await registerLocalUser(values);
 
-      if (!response.ok) {
-        const data = (await response.json()) as { message?: string };
-        toast.error(data.message ?? t.retry);
+      if (result.error) {
+        toast.error(result.error);
         setIsSubmitting(false);
         return;
       }
 
       toast.success(t.success);
-      window.location.assign("/login");
+      navigate("/login", { replace: true });
     } catch {
       toast.error(t.retry);
       setIsSubmitting(false);
