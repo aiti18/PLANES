@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes, HashRouter } from "react-router-dom";
 import { AppProviders } from "@/components/providers/AppProviders";
-import { isAuthenticated } from "@/lib/client-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import HomePage from "@/app/page";
 import AboutPage from "@/app/about/page";
 import ContactsPage from "@/app/contacts/page";
@@ -20,11 +20,41 @@ import WeeklyIndicatorPage from "@/app/weekly-indicator/page";
 import YearGoalsPage from "@/app/year-goals/page";
 
 function RequireAuth() {
-  return isAuthenticated() ? <Outlet /> : <Navigate replace to="/login" />;
+  const { configurationError, loading, session } = useAuth();
+
+  if (loading) {
+    return <AuthStatusScreen message="Проверяем сессию..." />;
+  }
+
+  if (configurationError) {
+    return <AuthStatusScreen message={configurationError} />;
+  }
+
+  return session ? <Outlet /> : <Navigate replace to="/login" />;
 }
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
-  return isAuthenticated() ? <Navigate replace to="/" /> : children;
+  const { configurationError, loading, session } = useAuth();
+
+  if (loading) {
+    return <AuthStatusScreen message="Проверяем сессию..." />;
+  }
+
+  if (configurationError) {
+    return <AuthStatusScreen message={configurationError} />;
+  }
+
+  return session ? <Navigate replace to="/" /> : children;
+}
+
+function AuthStatusScreen({ message }: { message: string }) {
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-[#0b3425] px-6 text-center text-emerald-50">
+      <p className="rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-sm font-bold">
+        {message}
+      </p>
+    </main>
+  );
 }
 
 export function App() {

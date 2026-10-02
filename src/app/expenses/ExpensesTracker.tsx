@@ -3,8 +3,11 @@
 import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import {
+  loadFinanceRecords,
+  replaceFinanceRecords,
+} from "@/lib/supabase-data";
 
-const STORAGE_KEY = "planes-expenses-tracker";
 const CURRENCY_STORAGE_KEY = "planes-expenses-currency";
 const SELECTED_MONTH_STORAGE_KEY = "planes-expenses-selected-month";
 
@@ -531,9 +534,9 @@ export function ExpensesTracker() {
   const [entries, setEntries] = useState<FinanceEntry[]>(initialEntries);
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("KGS");
   const [selectedMonthKey, setSelectedMonthKey] = useState(getCurrentMonthKey);
+  const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
-    const storedEntries = window.localStorage.getItem(STORAGE_KEY);
     const storedCurrencyCode = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
     const storedSelectedMonthKey = window.localStorage.getItem(
       SELECTED_MONTH_STORAGE_KEY,
@@ -552,20 +555,53 @@ export function ExpensesTracker() {
       setSelectedMonthKey(storedSelectedMonthKey);
     }
 
-    if (!storedEntries) {
-      return;
-    }
+    let active = true;
+    void loadFinanceRecords()
+      .then((records) => {
+        if (!active || !records.length) return;
+        setEntries(
+          records.map((record) => ({
+            amount: Number(record.amount),
+            checked: record.checked,
+            date: record.record_date,
+            id: record.record_id,
+            monthKey: record.month_key ?? undefined,
+            note: record.note,
+            title: record.title,
+            type: record.type,
+          })),
+        );
+      })
+      .catch((error) => console.error("Failed to load finance records", error))
+      .finally(() => {
+        if (active) setIsDataReady(true);
+      });
 
-    try {
-      setEntries(JSON.parse(storedEntries) as FinanceEntry[]);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }, [entries]);
+    if (!isDataReady) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void replaceFinanceRecords(
+        entries.map((entry) => ({
+          amount: entry.amount,
+          checked: entry.checked,
+          month_key: entry.monthKey ?? null,
+          note: entry.note,
+          record_date: entry.date,
+          record_id: entry.id,
+          title: entry.title,
+          type: entry.type,
+        })),
+      ).catch((error) => console.error("Failed to save finance records", error));
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [entries, isDataReady]);
 
   useEffect(() => {
     window.localStorage.setItem(CURRENCY_STORAGE_KEY, currencyCode);

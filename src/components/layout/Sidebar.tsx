@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar-store";
+import { useAppState } from "@/components/providers/AppStateProvider";
 
 const sidebarItems = [
   { href: "/month", label: { en: "Month", ru: "Месяц" } },
@@ -28,31 +29,10 @@ const mobileNavbarItems = [
   { href: "/contacts", label: { en: "Contacts", ru: "Контакты" } },
 ];
 
-const settingsStorageKey = "planes:settings:v1";
-const settingsUpdatedEvent = "planes:settings-updated";
-
-function getLanguage() {
-  if (typeof window === "undefined") {
-    return "ru";
-  }
-
-  const storedValue = window.localStorage.getItem(settingsStorageKey);
-
-  if (!storedValue) {
-    return "ru";
-  }
-
-  try {
-    const settings = JSON.parse(storedValue) as { language?: string };
-    return settings.language === "en" ? "en" : "ru";
-  } catch {
-    return "ru";
-  }
-}
-
 export function Sidebar() {
   const { isSidebarOpen, openSidebar, closeSidebar } = useSidebarStore();
-  const [language, setLanguage] = useState("ru");
+  const { settings } = useAppState();
+  const language = settings.language;
   const sidebarRef = useRef<HTMLElement | null>(null);
   const openButtonRef = useRef<HTMLButtonElement | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -69,21 +49,6 @@ export function Sidebar() {
       planner: "Планер",
     },
   }[language === "en" ? "en" : "ru"];
-
-  useEffect(() => {
-    function syncLanguage() {
-      setLanguage(getLanguage());
-    }
-
-    syncLanguage();
-    window.addEventListener("storage", syncLanguage);
-    window.addEventListener(settingsUpdatedEvent, syncLanguage);
-
-    return () => {
-      window.removeEventListener("storage", syncLanguage);
-      window.removeEventListener(settingsUpdatedEvent, syncLanguage);
-    };
-  }, []);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {

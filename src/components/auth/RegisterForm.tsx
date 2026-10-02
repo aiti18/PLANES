@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegisterInput, registerSchema } from "@/lib/validators/auth";
-import { registerLocalUser } from "@/lib/client-auth";
 import { Link } from "@/lib/router";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Language = "en" | "ru";
 
@@ -27,6 +27,7 @@ const copy = {
     submit: "Create account",
     submitting: "Creating...",
     success: "Account created. Please sign in",
+    confirmation: "Account created. Check your email to confirm registration",
     retry: "Could not create account. Try again",
     loginHint: "Already have an account?",
   },
@@ -42,6 +43,7 @@ const copy = {
     submit: "Создать аккаунт",
     submitting: "Создаем...",
     success: "Аккаунт создан. Войдите в систему",
+    confirmation: "Аккаунт создан. Подтвердите регистрацию по ссылке в email",
     retry: "Не удалось создать аккаунт. Попробуйте еще раз",
     loginHint: "Уже есть аккаунт?",
   },
@@ -49,6 +51,7 @@ const copy = {
 
 export function RegisterForm() {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
@@ -64,18 +67,23 @@ export function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await registerLocalUser(values);
+      const result = await signUp(values);
 
       if (result.error) {
         toast.error(result.error);
-        setIsSubmitting(false);
         return;
       }
 
-      toast.success(t.success);
-      navigate("/login", { replace: true });
+      if (result.confirmationRequired) {
+        toast.info(t.confirmation);
+        navigate("/login", { replace: true });
+      } else {
+        toast.success(t.success);
+        navigate("/", { replace: true });
+      }
     } catch {
       toast.error(t.retry);
+    } finally {
       setIsSubmitting(false);
     }
   }

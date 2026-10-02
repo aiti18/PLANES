@@ -4,8 +4,11 @@ import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import {
+  loadSavingsDebtRecords,
+  replaceSavingsDebtRecords,
+} from "@/lib/supabase-data";
 
-const STORAGE_KEY = "planes-savings-debts-tracker";
 const SELECTED_MONTH_STORAGE_KEY = "planes-savings-debts-selected-month";
 const CURRENCY_STORAGE_KEY = "planes-savings-debts-currency";
 
@@ -546,9 +549,9 @@ export default function SavingsDebtsPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("KGS");
   const [selectedMonthKey, setSelectedMonthKey] = useState(getCurrentMonthKey);
+  const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
-    const storedEntries = window.localStorage.getItem(STORAGE_KEY);
     const storedCurrencyCode = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
     const storedSelectedMonthKey = window.localStorage.getItem(
       SELECTED_MONTH_STORAGE_KEY,
@@ -567,20 +570,57 @@ export default function SavingsDebtsPage() {
       setSelectedMonthKey(storedSelectedMonthKey);
     }
 
-    if (!storedEntries) {
-      return;
-    }
+    let active = true;
+    void loadSavingsDebtRecords()
+      .then((records) => {
+        if (!active) return;
+        setEntries(
+          records.map((record) => ({
+            amount: Number(record.amount),
+            checked: record.checked,
+            closed: record.closed,
+            date: record.record_date,
+            id: record.record_id,
+            monthKey: record.month_key ?? undefined,
+            title: record.title,
+            type: record.type,
+          })),
+        );
+      })
+      .catch((error) =>
+        console.error("Failed to load savings/debt records", error),
+      )
+      .finally(() => {
+        if (active) setIsDataReady(true);
+      });
 
-    try {
-      setEntries(JSON.parse(storedEntries) as Entry[]);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }, [entries]);
+    if (!isDataReady) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void replaceSavingsDebtRecords(
+        entries.map((entry) => ({
+          amount: entry.amount,
+          checked: entry.checked,
+          closed: entry.closed === true,
+          month_key: entry.monthKey ?? null,
+          record_date: entry.date,
+          record_id: entry.id,
+          title: entry.title,
+          type: entry.type,
+        })),
+      ).catch((error) =>
+        console.error("Failed to save savings/debt records", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [entries, isDataReady]);
 
   useEffect(() => {
     window.localStorage.setItem(CURRENCY_STORAGE_KEY, currencyCode);

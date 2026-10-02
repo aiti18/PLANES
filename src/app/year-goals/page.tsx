@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
 
-const storageKey = "planes:year-goals:v1";
 const rowsPerCategory = 20;
 
 const categories = ["Финансы"];
@@ -74,28 +74,39 @@ function normalizeData(data: unknown): YearGoalsData {
 export default function YearGoalsPage() {
   const hasLoadedStorage = useRef(false);
   const [data, setData] = useState<YearGoalsData>(() => createInitialData());
+  const [isDataReady, setIsDataReady] = useState(false);
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(storageKey);
+    let active = true;
+    void loadPlannerDocument<YearGoalsData>("year_goals")
+      .then((storedData) => {
+        if (active && storedData) setData(normalizeData(storedData));
+      })
+      .catch((error) => console.error("Failed to load year goals", error))
+      .finally(() => {
+        if (!active) return;
+        hasLoadedStorage.current = true;
+        setIsDataReady(true);
+      });
 
-    if (storedValue) {
-      try {
-        setData(normalizeData(JSON.parse(storedValue)));
-      } catch {
-        window.localStorage.removeItem(storageKey);
-      }
-    }
-
-    hasLoadedStorage.current = true;
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedStorage.current) {
+    if (!hasLoadedStorage.current || !isDataReady) {
       return;
     }
 
-    window.localStorage.setItem(storageKey, JSON.stringify(data));
-  }, [data]);
+    const timeoutId = window.setTimeout(() => {
+      void savePlannerDocument("year_goals", data).catch((error) =>
+        console.error("Failed to save year goals", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [data, isDataReady]);
 
   function updateGoal(rowIndex: number, value: string) {
     setData((currentData) => ({

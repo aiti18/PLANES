@@ -14,6 +14,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
 
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const weekDayLong = [
@@ -54,7 +55,6 @@ const monthGenitives = [
   "декабря",
 ];
 
-const storageKey = "planes:month-page:v1";
 const minMonthKey = "2026-01";
 const firstTaskMonthKey = minMonthKey;
 const defaultMonthKey = minMonthKey;
@@ -278,16 +278,10 @@ export default function MonthPage() {
   );
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(storageKey);
-
-    if (!storedValue) {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-      return;
-    }
-
-    try {
-      const storedData = JSON.parse(storedValue) as Partial<StoredMonthPage>;
+    let active = true;
+    void loadPlannerDocument<Partial<StoredMonthPage>>("month")
+      .then((storedData) => {
+        if (!active || !storedData) return;
       const storedDate = storedData.monthDate
         ? new Date(`${storedData.monthDate}T00:00:00`)
         : null;
@@ -352,12 +346,17 @@ export default function MonthPage() {
       if (typeof storedData.notes === "string") {
         setNotes(storedData.notes);
       }
-    } catch {
-      window.localStorage.removeItem(storageKey);
-    } finally {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-    }
+      })
+      .catch((error) => console.error("Failed to load month planner", error))
+      .finally(() => {
+        if (!active) return;
+        hasLoadedStorage.current = true;
+        setIsStorageReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -374,7 +373,13 @@ export default function MonthPage() {
       notes,
     };
 
-    window.localStorage.setItem(storageKey, JSON.stringify(data));
+    const timeoutId = window.setTimeout(() => {
+      void savePlannerDocument("month", data).catch((error) =>
+        console.error("Failed to save month planner", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
   }, [focus, hiddenTaskIdsByMonth, isStorageReady, marks, monthDate, notes, tasks]);
 
   function addTask(event: FormEvent<HTMLFormElement>) {

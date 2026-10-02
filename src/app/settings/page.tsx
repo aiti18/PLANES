@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   ImagePlus,
@@ -16,42 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { signOutLocal } from "@/lib/client-auth";
-
-const storageKey = "planes:settings:v1";
-const settingsUpdatedEvent = "planes:settings-updated";
-const profileUpdatedEvent = "planes:profile-updated";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAppState } from "@/components/providers/AppStateProvider";
 const profilePhotoSize = 512;
-
-type SettingsState = {
-  accentColor: "green" | "blue" | "graphite";
-  autoSave: boolean;
-  compactMode: boolean;
-  currency: string;
-  darkMode: boolean;
-  emailNotifications: boolean;
-  language: "en" | "ru";
-  monthlyReport: boolean;
-  name: string;
-  photo: string;
-  privateMode: boolean;
-  pushNotifications: boolean;
-};
-
-const defaultSettings: SettingsState = {
-  accentColor: "green",
-  autoSave: true,
-  compactMode: false,
-  currency: "KGS",
-  darkMode: false,
-  emailNotifications: true,
-  language: "ru",
-  monthlyReport: true,
-  name: "Пользователь Planes",
-  photo: "",
-  privateMode: false,
-  pushNotifications: false,
-};
 
 async function createProfilePhotoDataUrlFromSource(source: string) {
   const image = new Image();
@@ -193,10 +160,15 @@ function SettingsCard({
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const hasLoadedStorage = useRef(false);
-  const [settings, setSettings] = useState(defaultSettings);
+  const { signOut } = useAuth();
+  const {
+    removeProfileAvatar,
+    settings,
+    updateSettings,
+    uploadProfileAvatar,
+  } = useAppState();
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
-  const [photoDraft, setPhotoDraft] = useState(defaultSettings.photo);
+  const [photoDraft, setPhotoDraft] = useState(settings.photo);
   const language = settings.language === "en" ? "en" : "ru";
   const text = {
     en: {
@@ -252,59 +224,23 @@ export default function SettingsPage() {
   }[language];
 
   useEffect(() => {
-    let isMounted = true;
-    const storedValue = window.localStorage.getItem(storageKey);
-    let storedSettings = defaultSettings;
-
-    if (storedValue) {
-      try {
-        storedSettings = { ...defaultSettings, ...JSON.parse(storedValue) };
-        storedSettings.language = storedSettings.language === "en" ? "en" : "ru";
-        storedSettings.darkMode = storedSettings.darkMode === true;
-      } catch {
-        window.localStorage.removeItem(storageKey);
-      }
-    }
-
-    if (isMounted) {
-      setSettings(storedSettings);
-      setPhotoDraft(storedSettings.photo);
-    }
-
-    hasLoadedStorage.current = true;
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoadedStorage.current) {
-      return;
-    }
-
-    window.localStorage.setItem(storageKey, JSON.stringify(settings));
-    window.dispatchEvent(new Event(settingsUpdatedEvent));
-  }, [settings]);
-
-  function updateSettings(nextSettings: Partial<SettingsState>) {
-    setSettings((currentSettings) => ({
-      ...currentSettings,
-      ...nextSettings,
-    }));
-  }
+    setPhotoDraft(settings.photo);
+  }, [settings.photo]);
 
   async function saveProfilePhoto() {
     setIsSavingPhoto(true);
 
     try {
-      const profilePhoto = photoDraft
-        ? await createProfilePhotoDataUrlFromSource(photoDraft)
-        : "";
+      if (!photoDraft) {
+        await removeProfileAvatar();
+      } else if (photoDraft !== settings.photo) {
+        const profilePhoto = await createProfilePhotoDataUrlFromSource(photoDraft);
+        const blob = await (await fetch(profilePhoto)).blob();
+        await uploadProfileAvatar(
+          new File([blob], "avatar.jpg", { type: "image/jpeg" }),
+        );
+      }
 
-      setPhotoDraft(profilePhoto);
-      updateSettings({ photo: profilePhoto });
-      window.dispatchEvent(new Event(profileUpdatedEvent));
       toast.success(text.photoSaved);
     } catch {
       toast.error(text.photoSaveError);
@@ -468,8 +404,14 @@ export default function SettingsPage() {
             <Button
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-white text-sm font-black text-red-700 shadow-sm shadow-red-950/5 transition hover:bg-red-50 sm:hidden"
               onClick={() => {
-                signOutLocal();
-                navigate("/login", { replace: true });
+                void signOut().then((result) => {
+                  if (result.error) {
+                    toast.error(result.error);
+                    return;
+                  }
+
+                  navigate("/login", { replace: true });
+                });
               }}
               variant="outline"
             >

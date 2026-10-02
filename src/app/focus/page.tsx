@@ -15,8 +15,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
 
-const storageKey = "planes:focus-page:v1";
 const maxHistoryItems = 20;
 const maxDurationHours = 24;
 const maxDurationMinutes = maxDurationHours * 60;
@@ -253,11 +253,11 @@ export default function FocusPage() {
   );
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(storageKey);
-
-    if (storedValue) {
-      try {
-        const restoredState = normalizeState(JSON.parse(storedValue));
+    let active = true;
+    void loadPlannerDocument<FocusState>("focus")
+      .then((storedValue) => {
+        if (!active || !storedValue) return;
+        const restoredState = normalizeState(storedValue);
 
         if (
           restoredState.status === "idle" &&
@@ -287,12 +287,15 @@ export default function FocusPage() {
 
         setState(restoredState);
         setDurationInput("");
-      } catch {
-        window.localStorage.removeItem(storageKey);
-      }
-    }
+      })
+      .catch((error) => console.error("Failed to load focus data", error))
+      .finally(() => {
+        if (active) setHasLoadedStorage(true);
+      });
 
-    setHasLoadedStorage(true);
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -300,7 +303,13 @@ export default function FocusPage() {
       return;
     }
 
-    window.localStorage.setItem(storageKey, JSON.stringify(state));
+    const timeoutId = window.setTimeout(() => {
+      void savePlannerDocument("focus", state).catch((error) =>
+        console.error("Failed to save focus data", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
   }, [hasLoadedStorage, state]);
 
   useEffect(() => {

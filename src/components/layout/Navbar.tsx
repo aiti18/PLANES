@@ -2,12 +2,13 @@
 
 import { LogOut, Menu, Plane, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar-store";
-import { signOutLocal } from "@/lib/client-auth";
 import { Link, usePathname } from "@/lib/router";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { useAppState } from "@/components/providers/AppStateProvider";
 
 const navItems = [
   { href: "/", label: { en: "Home", ru: "Главная" } },
@@ -15,57 +16,12 @@ const navItems = [
   { href: "/contacts", label: { en: "Contacts", ru: "Контакты" } },
 ];
 
-const settingsStorageKey = "planes:settings:v1";
-const settingsUpdatedEvent = "planes:settings-updated";
-const profileUpdatedEvent = "planes:profile-updated";
-
-type NavbarSettings = {
-  darkMode?: boolean;
-  language?: string;
-  name?: string;
-  photo?: string;
-};
-
-function getNavbarSettings(): NavbarSettings {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  const storedValue = window.localStorage.getItem(settingsStorageKey);
-
-  if (!storedValue) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(storedValue) as NavbarSettings;
-  } catch {
-    return {};
-  }
-}
-
 export function Navbar() {
   const pathname = usePathname();
   const navigate = useNavigate();
   const { isSidebarOpen, toggleSidebar } = useSidebarStore();
-  const [navbarSettings, setNavbarSettings] = useState<NavbarSettings>({});
-
-  useEffect(() => {
-    function syncSettings() {
-      setNavbarSettings(getNavbarSettings());
-    }
-
-    syncSettings();
-    window.addEventListener("storage", syncSettings);
-    window.addEventListener(settingsUpdatedEvent, syncSettings);
-    window.addEventListener(profileUpdatedEvent, syncSettings);
-
-    return () => {
-      window.removeEventListener("storage", syncSettings);
-      window.removeEventListener(settingsUpdatedEvent, syncSettings);
-      window.removeEventListener(profileUpdatedEvent, syncSettings);
-    };
-  }, []);
+  const { signOut } = useAuth();
+  const { settings: navbarSettings, updateSettings } = useAppState();
 
   const avatarLetter =
     navbarSettings.name?.trim().charAt(0).toUpperCase() || "P";
@@ -92,9 +48,7 @@ export function Navbar() {
       darkMode: !isDarkMode,
     };
 
-    window.localStorage.setItem(settingsStorageKey, JSON.stringify(nextSettings));
-    setNavbarSettings(nextSettings);
-    window.dispatchEvent(new Event(settingsUpdatedEvent));
+    updateSettings(nextSettings);
   }
 
   return (
@@ -187,8 +141,14 @@ export function Navbar() {
                 : "text-[#123c33]",
             )}
             onClick={() => {
-              signOutLocal();
-              navigate("/login", { replace: true });
+              void signOut().then((result) => {
+                if (result.error) {
+                  toast.error(result.error);
+                  return;
+                }
+
+                navigate("/login", { replace: true });
+              });
             }}
             variant="outline"
           >

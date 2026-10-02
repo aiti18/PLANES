@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoginInput, loginSchema } from "@/lib/validators/auth";
-import { signInLocal } from "@/lib/client-auth";
 import { Link } from "@/lib/router";
+import { useAuth } from "@/contexts/AuthContext";
 
 function VkIcon({ className }: { className?: string }) {
   return (
@@ -78,6 +78,7 @@ const copy = {
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("ru");
   const t = copy[language];
@@ -93,11 +94,10 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await signInLocal(values);
+      const result = await signIn(values);
 
-      if (result?.error) {
-        toast.error(t.error);
-        setIsSubmitting(false);
+      if (result.error) {
+        toast.error(result.error);
         return;
       }
 
@@ -107,6 +107,7 @@ export function LoginForm() {
       }, 650);
     } catch {
       toast.error(t.retry);
+    } finally {
       setIsSubmitting(false);
     }
   }

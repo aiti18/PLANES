@@ -2,32 +2,11 @@
 
 import { Link } from "@/lib/router";
 import { Github, Linkedin, Send } from "lucide-react";
-import { useEffect, useState } from "react";
-
-const settingsStorageKey = "planes:settings:v1";
-const settingsUpdatedEvent = "planes:settings-updated";
-
-function getLanguage() {
-  if (typeof window === "undefined") {
-    return "ru";
-  }
-
-  const storedValue = window.localStorage.getItem(settingsStorageKey);
-
-  if (!storedValue) {
-    return "ru";
-  }
-
-  try {
-    const settings = JSON.parse(storedValue) as { language?: string };
-    return settings.language === "en" ? "en" : "ru";
-  } catch {
-    return "ru";
-  }
-}
+import { useAppState } from "@/components/providers/AppStateProvider";
 
 export function Footer() {
-  const [language, setLanguage] = useState("ru");
+  const { settings } = useAppState();
+  const language = settings.language;
   const text = {
     en: {
       about: "About",
@@ -46,21 +25,6 @@ export function Footer() {
       socials: "Соцсети",
     },
   }[language === "en" ? "en" : "ru"];
-
-  useEffect(() => {
-    function syncLanguage() {
-      setLanguage(getLanguage());
-    }
-
-    syncLanguage();
-    window.addEventListener("storage", syncLanguage);
-    window.addEventListener(settingsUpdatedEvent, syncLanguage);
-
-    return () => {
-      window.removeEventListener("storage", syncLanguage);
-      window.removeEventListener(settingsUpdatedEvent, syncLanguage);
-    };
-  }, []);
 
   return (
     <footer className="px-3 pb-6 sm:px-5">

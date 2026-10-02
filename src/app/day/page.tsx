@@ -12,6 +12,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
 
 const monthNames = [
   "Январь",
@@ -29,7 +30,6 @@ const monthNames = [
 ];
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const monthNamesShort = monthNames.map((month) => month.toLowerCase());
-const storageKey = "planes:day-page:v1";
 const defaultMonthDate = new Date(2026, 0, 1);
 const tasksPerDay = 3;
 
@@ -176,16 +176,10 @@ export default function DayPage() {
   });
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(storageKey);
-
-    if (!storedValue) {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-      return;
-    }
-
-    try {
-      const storedData = JSON.parse(storedValue) as Partial<StoredDayPage>;
+    let active = true;
+    void loadPlannerDocument<Partial<StoredDayPage>>("day")
+      .then((storedData) => {
+        if (!active || !storedData) return;
 
       if (
         typeof storedData.monthDate === "string" &&
@@ -204,12 +198,17 @@ export default function DayPage() {
           ),
         );
       }
-    } catch {
-      window.localStorage.removeItem(storageKey);
-    } finally {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-    }
+      })
+      .catch((error) => console.error("Failed to load day planner", error))
+      .finally(() => {
+        if (!active) return;
+        hasLoadedStorage.current = true;
+        setIsStorageReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -222,7 +221,13 @@ export default function DayPage() {
       tasksByDate,
     };
 
-    window.localStorage.setItem(storageKey, JSON.stringify(data));
+    const timeoutId = window.setTimeout(() => {
+      void savePlannerDocument("day", data).catch((error) =>
+        console.error("Failed to save day planner", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isStorageReady, monthKey, tasksByDate]);
 
   function moveMonth(direction: -1 | 1) {

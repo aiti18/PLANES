@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { useAppState } from "@/components/providers/AppStateProvider";
+import {
+  loadFinanceRecords,
+  loadSavingsDebtRecords,
+} from "@/lib/supabase-data";
 
-const settingsStorageKey = "planes:settings:v1";
-const expensesStorageKey = "planes-expenses-tracker";
-const savingsDebtsStorageKey = "planes-savings-debts-tracker";
 const emailDigestSentKey = "planes-notifications-email-digest-sent";
 const pushDigestSentKey = "planes-notifications-push-digest-sent";
 
@@ -25,11 +27,6 @@ type SavingsDebtEntry = {
   type: "debt" | "saving";
 };
 
-type Settings = {
-  emailNotifications?: boolean;
-  pushNotifications?: boolean;
-};
-
 function getCurrentMonthKey() {
   return new Intl.DateTimeFormat("sv-SE", {
     month: "2-digit",
@@ -44,24 +41,29 @@ function getDisplayMonth() {
   }).format(new Date());
 }
 
-function readJson<T>(key: string, fallback: T): T {
-  const value = window.localStorage.getItem(key);
-
-  if (!value) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function createDigest() {
+async function createDigest() {
   const monthKey = getCurrentMonthKey();
-  const financeEntries = readJson<FinanceEntry[]>(expensesStorageKey, []);
-  const savingsDebtEntries = readJson<SavingsDebtEntry[]>(savingsDebtsStorageKey, []);
+  const [storedFinanceEntries, storedSavingsDebtEntries] = await Promise.all([
+    loadFinanceRecords(),
+    loadSavingsDebtRecords(),
+  ]);
+  const financeEntries: FinanceEntry[] = storedFinanceEntries.map((entry) => ({
+    amount: Number(entry.amount),
+    checked: entry.checked,
+    monthKey: entry.month_key ?? undefined,
+    title: entry.title,
+    type: entry.type,
+  }));
+  const savingsDebtEntries: SavingsDebtEntry[] = storedSavingsDebtEntries.map(
+    (entry) => ({
+      amount: Number(entry.amount),
+      checked: entry.checked,
+      closed: entry.closed,
+      monthKey: entry.month_key ?? undefined,
+      title: entry.title,
+      type: entry.type,
+    }),
+  );
   const currentFinanceEntries = financeEntries.filter(
     (entry) => (entry.monthKey ?? monthKey) === monthKey && entry.checked,
   );
@@ -124,7 +126,7 @@ function markEmailDigestLocally() {
   window.localStorage.setItem(todayKey, "true");
 }
 
-function sendPushDigest() {
+async function sendPushDigest() {
   const todayKey = getTodayKey(pushDigestSentKey);
 
   if (
@@ -135,7 +137,7 @@ function sendPushDigest() {
     return;
   }
 
-  const digest = createDigest();
+  const digest = await createDigest();
   const body =
     digest.lines[0] ??
     `Баланс: ${digest.balance.toLocaleString("ru-RU")} KGS, долги: ${digest.debts.toLocaleString("ru-RU")} KGS.`;
@@ -147,26 +149,24 @@ function sendPushDigest() {
 }
 
 export function NotificationBridge() {
-  useEffect(() => {
-    function runNotifications() {
-      const settings = readJson<Settings>(settingsStorageKey, {});
+  const { isReady, settings } = useAppState();
 
+  useEffect(() => {
+    async function runNotifications() {
+      if (!isReady) return;
       if (settings.emailNotifications) {
         markEmailDigestLocally();
       }
 
       if (settings.pushNotifications) {
-        sendPushDigest();
+        await sendPushDigest();
       }
     }
 
-    runNotifications();
-    window.addEventListener("planes:settings-updated", runNotifications);
-
-    return () => {
-      window.removeEventListener("planes:settings-updated", runNotifications);
-    };
-  }, []);
+    void runNotifications().catch((error) =>
+      console.error("Failed to create notification digest", error),
+    );
+  }, [isReady, settings.emailNotifications, settings.pushNotifications]);
 
   return null;
 }

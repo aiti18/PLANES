@@ -15,9 +15,11 @@ import {
 } from "recharts";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  loadFinanceRecords,
+  loadSavingsDebtRecords,
+} from "@/lib/supabase-data";
 
-const EXPENSES_STORAGE_KEY = "planes-expenses-tracker";
-const SAVINGS_DEBTS_STORAGE_KEY = "planes-savings-debts-tracker";
 const SELECTED_MONTH_STORAGE_KEY = "planes-indicators-selected-month";
 
 type CashFlowEntry = {
@@ -156,20 +158,6 @@ function getTotal(rows: SummaryRow[]) {
   return rows.reduce((sum, row) => sum + row.actual, 0);
 }
 
-function parseStoredArray<T>(value: string | null): T[] {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    const parsedValue = JSON.parse(value);
-
-    return Array.isArray(parsedValue) ? (parsedValue as T[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function aggregateByTitle(entries: { amount: number; title: string }[]) {
   const totals = new Map<string, number>();
 
@@ -305,21 +293,40 @@ export default function IndicatorsPage() {
   const [savingsDebtEntries, setSavingsDebtEntries] = useState<SavingsDebtEntry[]>([]);
 
   useEffect(() => {
-    setCashFlowEntries(
-      parseStoredArray<CashFlowEntry>(
-        window.localStorage.getItem(EXPENSES_STORAGE_KEY),
-      ),
-    );
-    setSavingsDebtEntries(
-      parseStoredArray<SavingsDebtEntry>(
-        window.localStorage.getItem(SAVINGS_DEBTS_STORAGE_KEY),
-      ),
-    );
+    let active = true;
+    void Promise.all([loadFinanceRecords(), loadSavingsDebtRecords()])
+      .then(([financeRecords, savingsDebtRecords]) => {
+        if (!active) return;
+        setCashFlowEntries(
+          financeRecords.map((record) => ({
+            amount: Number(record.amount),
+            checked: record.checked,
+            monthKey: record.month_key ?? undefined,
+            title: record.title,
+            type: record.type,
+          })),
+        );
+        setSavingsDebtEntries(
+          savingsDebtRecords.map((record) => ({
+            amount: Number(record.amount),
+            checked: record.checked,
+            closed: record.closed,
+            monthKey: record.month_key ?? undefined,
+            title: record.title,
+            type: record.type,
+          })),
+        );
+      })
+      .catch((error) => console.error("Failed to load indicator data", error));
 
     const storedMonthKey = window.localStorage.getItem(SELECTED_MONTH_STORAGE_KEY);
     if (storedMonthKey) {
       setMonthKey(storedMonthKey);
     }
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

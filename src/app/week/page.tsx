@@ -14,6 +14,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
 
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const weekDayLong = [
@@ -40,7 +41,6 @@ const monthGenitives = [
   "декабря",
 ];
 
-const storageKey = "planes:week-page:v1";
 const minWeekDate = new Date(2026, 0, 1);
 const defaultFocus =
   "Что нужно сделать на этой неделе:\n- выбрать главный фокус\n- закрыть важные задачи\n- сохранить ритм";
@@ -217,16 +217,10 @@ export default function WeekPage() {
   );
 
   useEffect(() => {
-    const storedValue = window.localStorage.getItem(storageKey);
-
-    if (!storedValue) {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-      return;
-    }
-
-    try {
-      const storedData = JSON.parse(storedValue) as Partial<StoredWeekPage>;
+    let active = true;
+    void loadPlannerDocument<Partial<StoredWeekPage>>("week")
+      .then((storedData) => {
+        if (!active || !storedData) return;
       const storedDate =
         typeof storedData.weekDate === "string"
           ? getDateFromKey(storedData.weekDate)
@@ -290,12 +284,17 @@ export default function WeekPage() {
       if (typeof storedData.notes === "string") {
         setNotes(storedData.notes);
       }
-    } catch {
-      window.localStorage.removeItem(storageKey);
-    } finally {
-      hasLoadedStorage.current = true;
-      setIsStorageReady(true);
-    }
+      })
+      .catch((error) => console.error("Failed to load week planner", error))
+      .finally(() => {
+        if (!active) return;
+        hasLoadedStorage.current = true;
+        setIsStorageReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -312,7 +311,13 @@ export default function WeekPage() {
       notes,
     };
 
-    window.localStorage.setItem(storageKey, JSON.stringify(data));
+    const timeoutId = window.setTimeout(() => {
+      void savePlannerDocument("week", data).catch((error) =>
+        console.error("Failed to save week planner", error),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
   }, [focus, hiddenTaskIdsByWeek, isStorageReady, marks, notes, tasks, weekDate]);
 
   function addTask(event: FormEvent<HTMLFormElement>) {
