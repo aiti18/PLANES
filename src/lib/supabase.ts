@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { browserAuthStorage } from "@/lib/auth-storage";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim() ?? "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? "";
@@ -13,6 +14,7 @@ export const supabase: SupabaseClient<Database> | null = isSupabaseConfigured
         detectSessionInUrl: true,
         flowType: "pkce",
         persistSession: true,
+        storage: browserAuthStorage,
       },
     })
   : null;

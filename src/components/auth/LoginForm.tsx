@@ -12,6 +12,10 @@ import { Label } from "@/components/ui/label";
 import { LoginInput, loginSchema } from "@/lib/validators/auth";
 import { Link } from "@/lib/router";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  getRememberedEmail,
+  shouldRememberSession,
+} from "@/lib/auth-storage";
 
 function VkIcon({ className }: { className?: string }) {
   return (
@@ -81,12 +85,17 @@ export function LoginForm() {
   const { signIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<Language>("ru");
+  const [remember, setRemember] = useState(shouldRememberSession);
   const t = copy[language];
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInput>({
+    defaultValues: {
+      email: getRememberedEmail(),
+      password: "",
+    },
     resolver: zodResolver(loginSchema),
   });
 
@@ -94,7 +103,7 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await signIn(values);
+      const result = await signIn(values, remember);
 
       if (result.error) {
         toast.error(result.error);
@@ -150,6 +159,7 @@ export function LoginForm() {
         </div>
 
         <form
+          autoComplete="on"
           className="relative z-10 mt-10 space-y-6"
           onSubmit={handleSubmit(onSubmit)}
         >
@@ -162,6 +172,7 @@ export function LoginForm() {
                 {t.email}
               </Label>
               <Input
+                autoComplete="username"
                 className="h-16 rounded-[18px] border-2 border-emerald-100/20 bg-white/[0.03] px-5 text-[15px] font-medium text-emerald-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] placeholder:text-emerald-50/44 focus:border-[#63f279] focus:ring-[#63f279]/20"
                 id="email"
                 placeholder={t.emailPlaceholder}
@@ -185,6 +196,7 @@ export function LoginForm() {
                 {t.password}
               </Label>
               <Input
+                autoComplete="current-password"
                 className="h-16 rounded-[18px] border-2 border-emerald-100/20 bg-white/[0.03] px-5 text-[15px] font-medium text-emerald-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] placeholder:text-emerald-50/44 focus:border-[#63f279] focus:ring-[#63f279]/20"
                 id="password"
                 placeholder={t.passwordPlaceholder}
@@ -201,7 +213,12 @@ export function LoginForm() {
 
           <div className="flex items-center justify-between gap-3 pt-2">
             <label className="flex cursor-pointer items-center gap-3">
-              <input className="peer sr-only" type="checkbox" />
+              <input
+                checked={remember}
+                className="peer sr-only"
+                onChange={(event) => setRemember(event.target.checked)}
+                type="checkbox"
+              />
               <span className="relative h-7 w-12 rounded-full bg-white/70 transition after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-emerald-900/55 after:shadow-sm after:transition after:content-[''] peer-checked:bg-[#62f878] peer-checked:after:translate-x-5 peer-checked:after:bg-[#082518]" />
               <span className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-emerald-50/68">
                 {t.remember}

@@ -14,6 +14,11 @@ import {
   supabase,
 } from "@/lib/supabase";
 import { getAuthErrorMessage } from "@/lib/supabase-errors";
+import {
+  getRememberedEmail,
+  setAuthPersistence,
+  shouldRememberSession,
+} from "@/lib/auth-storage";
 
 type AuthResult = {
   confirmationRequired?: boolean;
@@ -24,7 +29,7 @@ type AuthContextValue = {
   configurationError: string | null;
   loading: boolean;
   session: Session | null;
-  signIn: (values: LoginInput) => Promise<AuthResult>;
+  signIn: (values: LoginInput, remember: boolean) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
   signUp: (values: RegisterInput) => Promise<AuthResult>;
   user: User | null;
@@ -99,15 +104,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signIn = useCallback(
-    async (values: LoginInput): Promise<AuthResult> => {
+    async (values: LoginInput, remember: boolean): Promise<AuthResult> => {
       if (!supabase) {
         return { error: "Supabase ещё не настроен" };
       }
+
+      const previousRemember = shouldRememberSession();
+      const previousEmail = getRememberedEmail();
+      setAuthPersistence(remember, values.email);
 
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email.trim().toLowerCase(),
         password: values.password,
       });
+
+      if (error) {
+        setAuthPersistence(previousRemember, previousEmail);
+      }
 
       return { error: error ? getAuthErrorMessage(error.message) : null };
     },
