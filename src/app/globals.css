@@ -182,3 +182,29 @@ a {
 .planes-dark .bg-background {
   background-color: hsl(var(--background)) !important;
 }
+
+/* Keep Sonner's dismiss control inside the notification, aligned on the right. */
+[data-sonner-toast][data-styled="true"] {
+  padding-right: 58px !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  left: auto !important;
+  right: 16px !important;
+  top: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  transform: translateY(-50%) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+}
+
+[data-sonner-toast] [data-close-button] svg {
+  width: 22px;
+  height: 22px;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background: rgba(5, 150, 105, 0.1) !important;
+}

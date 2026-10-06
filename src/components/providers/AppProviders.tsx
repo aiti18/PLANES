@@ -10,7 +10,12 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <QueryProvider>
         <AppStateProvider>{children}</AppStateProvider>
-        <Toaster closeButton duration={2500} richColors position="top-right" />
+        <Toaster
+          closeButton
+          duration={2500}
+          richColors
+          position="top-right"
+        />
       </QueryProvider>
     </AuthProvider>
   );
