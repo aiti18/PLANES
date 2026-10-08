@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  CopyPlus,
   GripVertical,
   Plus,
   Trash2,
@@ -15,6 +16,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSortableList } from "@/components/ui/use-sortable-list";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { loadPlannerDocument, savePlannerDocument } from "@/lib/supabase-data";
+import { toast } from "sonner";
 
 const weekDayShort = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const weekDayLong = [
@@ -466,6 +468,53 @@ export default function MonthPage() {
     });
   }
 
+  function carryTasksToNextMonth() {
+    const nextMonthDate = new Date(
+      monthDate.getFullYear(),
+      monthDate.getMonth() + 1,
+      1,
+    );
+    const nextMonthKey = getMonthKey(nextMonthDate);
+    const sourceTitles = new Set(
+      visibleTasks.map((task) => normalizeTitle(task.title)),
+    );
+    const existingNextMonthTasks = tasks.filter((task) =>
+      isTaskCreatedInMonth(task, nextMonthKey),
+    );
+    const existingTitles = new Set(
+      existingNextMonthTasks.map((task) => normalizeTitle(task.title)),
+    );
+    const carriedTasks = visibleTasks
+      .filter((task) => !existingTitles.has(normalizeTitle(task.title)))
+      .map((task, index) => ({
+        ...task,
+        completed: false,
+        createdMonthKey: nextMonthKey,
+        id: `task-${Date.now()}-${index}`,
+      }));
+
+    if (carriedTasks.length) {
+      setTasks((currentTasks) => [...currentTasks, ...carriedTasks]);
+      toast.success(`Перенесено пунктов: ${carriedTasks.length}`);
+    } else {
+      toast.info("Все пункты уже есть в следующем месяце");
+    }
+
+    const existingTaskIdsToReveal = new Set(
+      existingNextMonthTasks
+        .filter((task) => sourceTitles.has(normalizeTitle(task.title)))
+        .map((task) => task.id),
+    );
+    setHiddenTaskIdsByMonth((current) => ({
+      ...current,
+      [nextMonthKey]: (current[nextMonthKey] ?? []).filter(
+        (taskId) => !existingTaskIdsToReveal.has(taskId),
+      ),
+    }));
+
+    setMonthDate(nextMonthDate);
+  }
+
   function selectMonth(monthIndex: number) {
     const nextDate = new Date(monthDate.getFullYear(), monthIndex, 1);
 
@@ -533,7 +582,7 @@ export default function MonthPage() {
             <section className="min-w-0 rounded-md border border-emerald-900/15 bg-white p-3 shadow-sm sm:p-4">
               <div className="mb-4 flex flex-col gap-3 border-b border-emerald-900/15 pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="grid grid-cols-[32px_170px_32px] items-center gap-2">
+                  <div className="grid grid-cols-[32px_170px_32px_40px] items-center gap-2">
                     <button
                       aria-label="Предыдущий месяц"
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-900/20 bg-white text-emerald-900 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -560,6 +609,22 @@ export default function MonthPage() {
                       type="button"
                     >
                       <ChevronRight className="h-4 w-4" />
+                    </button>
+                    <button
+                      aria-label={`Перенести все пункты в ${getMonthTitle(
+                        new Date(
+                          monthDate.getFullYear(),
+                          monthDate.getMonth() + 1,
+                          1,
+                        ),
+                      )}`}
+                      className="flex h-8 w-10 items-center justify-center rounded-md border border-emerald-900/20 bg-emerald-900 text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+                      disabled={visibleTasks.length === 0}
+                      onClick={carryTasksToNextMonth}
+                      title="Перенести все пункты в следующий месяц"
+                      type="button"
+                    >
+                      <CopyPlus className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
